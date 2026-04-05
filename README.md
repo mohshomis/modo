@@ -12,6 +12,10 @@
   <a href="https://github.com/modoeditor/modo/blob/main/LICENSE.txt">MIT License</a> · <a href="#quick-start">Quick Start</a> · <a href="#what-modo-adds">What Modo Adds</a> · <a href="#contributing">Contributing</a>
 </p>
 
+<p align="center">
+  <video src="https://github.com/mohshomis/modo/raw/main/resources/modo-demo.mp4" width="700" autoplay loop muted playsinline></video>
+</p>
+
 ---
 
 I wanted a small feature in an AI coding tool. Couldn't find a way to suggest it. So I asked myself: how hard is it to actually build something like Kiro, Cursor, or Windsurf?
