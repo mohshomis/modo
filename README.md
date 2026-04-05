@@ -1,7 +1,5 @@
 <p align="center">
-  <a href="https://github.com/mohshomis/modo/raw/main/resources/modo-demo.mp4">
-    <img src="resources/modo-app-icon.svg" alt="Modo Demo — click to watch" width="140" />
-  </a>
+  <img src="resources/modo-app-icon.svg" alt="Modo" width="140" />
 </p>
 
 <h1 align="center">Modo</h1>
@@ -14,7 +12,9 @@
   <a href="https://github.com/modoeditor/modo/blob/main/LICENSE.txt">MIT License</a> · <a href="#quick-start">Quick Start</a> · <a href="#what-modo-adds">What Modo Adds</a> · <a href="#contributing">Contributing</a>
 </p>
 
-https://github.com/mohshomis/modo/raw/main/resources/modo-demo.mp4
+<p align="center">
+  <img src="resources/modo-demo.gif" alt="Modo in action" width="700" />
+</p>
 
 ---
 
