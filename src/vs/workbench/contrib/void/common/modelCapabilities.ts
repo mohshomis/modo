@@ -72,38 +72,43 @@ export const defaultProviderSettings = {
 
 
 export const defaultModelsOfProvider = {
-	openAI: [ // https://platform.openai.com/docs/models/gp
+	openAI: [ // https://platform.openai.com/docs/models
+		'gpt-5.2',
+		'gpt-5-mini',
+		'gpt-5-nano',
 		'gpt-4.1',
 		'gpt-4.1-mini',
 		'gpt-4.1-nano',
 		'o3',
 		'o4-mini',
+		'o3-mini',
+		// 'gpt-5.1',
+		// 'gpt-5',
 		// 'o1',
-		// 'o1-mini',
 		// 'gpt-4o',
 		// 'gpt-4o-mini',
 	],
 	anthropic: [ // https://docs.anthropic.com/en/docs/about-claude/models
-		'claude-opus-4-0',
-		'claude-sonnet-4-0',
+		'claude-opus-4-20250514',
+		'claude-sonnet-4-20250514',
 		'claude-3-7-sonnet-latest',
 		'claude-3-5-sonnet-latest',
 		'claude-3-5-haiku-latest',
-		'claude-3-opus-latest',
+		// 'claude-3-opus-latest',
 	],
-	xAI: [ // https://docs.x.ai/docs/models?cluster=us-east-1
-		'grok-2',
+	xAI: [ // https://docs.x.ai/docs/models
 		'grok-3',
-		'grok-3-mini',
 		'grok-3-fast',
-		'grok-3-mini-fast'
+		'grok-3-mini',
+		'grok-3-mini-fast',
+		'grok-2',
 	],
 	gemini: [ // https://ai.google.dev/gemini-api/docs/models/gemini
-		'gemini-2.5-pro-exp-03-25',
+		'gemini-2.5-pro-preview-05-06',
 		'gemini-2.5-flash-preview-04-17',
+		'gemini-2.5-pro-exp-03-25',
 		'gemini-2.0-flash',
 		'gemini-2.0-flash-lite',
-		'gemini-2.5-pro-preview-05-06',
 	],
 	deepseek: [ // https://api-docs.deepseek.com/quick_start/pricing
 		'deepseek-chat',
@@ -143,6 +148,8 @@ export const defaultModelsOfProvider = {
 	mistral: [ // https://docs.mistral.ai/getting-started/models/models_overview/
 		'codestral-latest',
 		'devstral-small-latest',
+		'magistral-medium-latest',
+		'magistral-small-latest',
 		'mistral-large-latest',
 		'mistral-medium-latest',
 		'ministral-3b-latest',
@@ -454,6 +461,12 @@ const extensiveModelOptionsFallback: VoidStaticProviderInfo['modelOptionsFallbac
 	if (lower.includes('gpt') && lower.includes('nano') && (lower.includes('4.1') || lower.includes('4-1'))) return toFallback(openAIModelOptions, 'gpt-4.1-nano')
 	if (lower.includes('gpt') && (lower.includes('4.1') || lower.includes('4-1'))) return toFallback(openAIModelOptions, 'gpt-4.1')
 
+	if (lower.includes('gpt-5') && lower.includes('nano')) return toFallback(openAIModelOptions, 'gpt-5-nano')
+	if (lower.includes('gpt-5') && lower.includes('mini')) return toFallback(openAIModelOptions, 'gpt-5-mini')
+	if (lower.includes('gpt-5.2')) return toFallback(openAIModelOptions, 'gpt-5.2')
+	if (lower.includes('gpt-5.1')) return toFallback(openAIModelOptions, 'gpt-5.1')
+	if (lower.includes('gpt-5')) return toFallback(openAIModelOptions, 'gpt-5')
+
 	if (lower.includes('4o') && lower.includes('mini')) return toFallback(openAIModelOptions, 'gpt-4o-mini')
 	if (lower.includes('4o')) return toFallback(openAIModelOptions, 'gpt-4o')
 
@@ -603,10 +616,60 @@ const anthropicSettings: VoidStaticProviderInfo = {
 
 // ---------------- OPENAI ----------------
 const openAIModelOptions = { // https://platform.openai.com/docs/pricing
-	'o3': {
-		contextWindow: 1_047_576,
+	'gpt-5.2': {
+		contextWindow: 400_000,
 		reservedOutputTokenSpace: 32_768,
-		cost: { input: 10.00, output: 40.00, cache_read: 2.50 },
+		cost: { input: 1.75, output: 14.00 },
+		downloadable: false,
+		supportsFIM: false,
+		specialToolFormat: 'openai-style',
+		supportsSystemMessage: 'developer-role',
+		reasoningCapabilities: false,
+	},
+	'gpt-5.1': {
+		contextWindow: 400_000,
+		reservedOutputTokenSpace: 32_768,
+		cost: { input: 1.25, output: 10.00 },
+		downloadable: false,
+		supportsFIM: false,
+		specialToolFormat: 'openai-style',
+		supportsSystemMessage: 'developer-role',
+		reasoningCapabilities: false,
+	},
+	'gpt-5': {
+		contextWindow: 400_000,
+		reservedOutputTokenSpace: 32_768,
+		cost: { input: 1.25, output: 10.00 },
+		downloadable: false,
+		supportsFIM: false,
+		specialToolFormat: 'openai-style',
+		supportsSystemMessage: 'developer-role',
+		reasoningCapabilities: false,
+	},
+	'gpt-5-mini': {
+		contextWindow: 400_000,
+		reservedOutputTokenSpace: 32_768,
+		cost: { input: 0.25, output: 2.00 },
+		downloadable: false,
+		supportsFIM: false,
+		specialToolFormat: 'openai-style',
+		supportsSystemMessage: 'developer-role',
+		reasoningCapabilities: false,
+	},
+	'gpt-5-nano': {
+		contextWindow: 400_000,
+		reservedOutputTokenSpace: 32_768,
+		cost: { input: 0.05, output: 0.40 },
+		downloadable: false,
+		supportsFIM: false,
+		specialToolFormat: 'openai-style',
+		supportsSystemMessage: 'developer-role',
+		reasoningCapabilities: false,
+	},
+	'o3': {
+		contextWindow: 200_000,
+		reservedOutputTokenSpace: 32_768,
+		cost: { input: 2.00, output: 8.00, cache_read: 0.50 },
 		downloadable: false,
 		supportsFIM: false,
 		specialToolFormat: 'openai-style',
@@ -665,7 +728,7 @@ const openAIModelOptions = { // https://platform.openai.com/docs/pricing
 	'o3-mini': {
 		contextWindow: 200_000,
 		reservedOutputTokenSpace: 100_000,
-		cost: { input: 1.10, cache_read: 0.55, output: 4.40, },
+		cost: { input: 0.50, cache_read: 0.25, output: 2.00, },
 		downloadable: false,
 		supportsFIM: false,
 		supportsSystemMessage: 'developer-role',
@@ -718,9 +781,15 @@ const openAISettings: VoidStaticProviderInfo = {
 	modelOptionsFallback: (modelName) => {
 		const lower = modelName.toLowerCase()
 		let fallbackName: keyof typeof openAIModelOptions | null = null
-		if (lower.includes('o1')) { fallbackName = 'o1' }
-		if (lower.includes('o3-mini')) { fallbackName = 'o3-mini' }
-		if (lower.includes('gpt-4o')) { fallbackName = 'gpt-4o' }
+		if (lower.includes('gpt-5') && lower.includes('nano')) { fallbackName = 'gpt-5-nano' }
+		else if (lower.includes('gpt-5') && lower.includes('mini')) { fallbackName = 'gpt-5-mini' }
+		else if (lower.includes('gpt-5.2')) { fallbackName = 'gpt-5.2' }
+		else if (lower.includes('gpt-5.1')) { fallbackName = 'gpt-5.1' }
+		else if (lower.includes('gpt-5')) { fallbackName = 'gpt-5' }
+		else if (lower.includes('o1')) { fallbackName = 'o1' }
+		else if (lower.includes('o3-mini')) { fallbackName = 'o3-mini' }
+		else if (lower.includes('o3')) { fallbackName = 'o3' }
+		else if (lower.includes('gpt-4o')) { fallbackName = 'gpt-4o' }
 		if (fallbackName) return { modelName: fallbackName, recognizedModelName: fallbackName, ...openAIModelOptions[fallbackName] }
 		return null
 	},
