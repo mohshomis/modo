@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/vs/workbench/browser/parts/editor/media/modo_logo.svg" alt="Modo" width="120" />
+  <img src="resources/modo-app-icon.svg" alt="Modo" width="140" />
 </p>
 
 <h1 align="center">Modo</h1>
