@@ -218,6 +218,8 @@ src/vs/workbench/contrib/void/
 
 ## Contributing
 
+This project is community-maintained. I built it as a learning experiment — I'm not actively maintaining it on a schedule. If you want something fixed or added, the best path is to fork it and submit a PR.
+
 ```bash
 npm run watch        # TypeScript compilation (keep running)
 npm run buildreact   # React UI (run after changing .tsx files)
@@ -225,6 +227,8 @@ npm run buildreact   # React UI (run after changing .tsx files)
 ```
 
 Core services: `src/vs/workbench/contrib/void/common/`. Browser-side logic: `browser/`. React components: `browser/react/src/`.
+
+Serious contributors who want commit access — open an issue. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 PRs welcome. MIT licensed.
 
