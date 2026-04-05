@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" fill="none">
+
+  <!-- Body — slightly smaller -->
+  <ellipse cx="100" cy="105" rx="64" ry="68" fill="#a1a1aa" opacity="0.55"/>
+
+  <!-- Antenna on top-left of head -->
+  <line x1="78" y1="42" x2="65" y2="18" stroke="#a1a1aa" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  <circle cx="63" cy="14" r="4" fill="#a1a1aa" opacity="0.5"/>
+  <line x1="90" y1="38" x2="95" y2="16" stroke="#a1a1aa" stroke-width="1.8" stroke-linecap="round" opacity="0.35"/>
+  <circle cx="96" cy="13" r="2.5" fill="#a1a1aa" opacity="0.35"/>
+
+  <!-- Eyes — dark cutouts -->
+  <circle cx="82" cy="97" r="7" fill="#1e1e1e"/>
+  <circle cx="118" cy="97" r="7" fill="#1e1e1e"/>
+
+  <!-- Mouth -->
+  <path d="M82 132 L118 130" stroke="#1e1e1e" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <path d="M116 130 L122 126" stroke="#1e1e1e" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- MODO text -->
+  <text x="225" y="122" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="68" font-weight="300" letter-spacing="4" fill="none" stroke="#a1a1aa" stroke-width="3" opacity="0.55">MODO</text>
+</svg>

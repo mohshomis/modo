@@ -248,15 +248,15 @@ const ReasoningOptionSlider = ({ featureName }: { featureName: FeatureName }) =>
 
 
 const nameOfChatMode = {
-	'normal': 'Chat',
-	'gather': 'Gather',
+	'normal': 'Vibe',
+	'gather': 'Vibe',
 	'agent': 'Agent',
 }
 
 const detailOfChatMode = {
-	'normal': 'Normal chat',
-	'gather': 'Reads files, but can\'t edit',
-	'agent': 'Edits files and uses tools',
+	'normal': 'Free-form Q&A — smart intent detection',
+	'gather': 'Free-form Q&A — smart intent detection',
+	'agent': 'Full agent — reads, writes, runs commands',
 }
 
 
@@ -285,7 +285,82 @@ const ChatModeDropdown = ({ className }: { className: string }) => {
 
 }
 
+// Context usage indicator — shows how much of the context window is used
+const ContextUsageIndicator = () => {
+	const [showPopup, setShowPopup] = useState(false)
 
+	return <div className='relative'>
+		<svg
+			className='text-void-fg-3 cursor-pointer hover:text-void-fg-1 transition-colors'
+			width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+			title='Context usage'
+			onClick={() => setShowPopup(!showPopup)}
+		>
+			<circle cx="12" cy="12" r="10"/>
+		</svg>
+		{showPopup && (
+			<div
+				className='absolute bottom-6 left-0 bg-void-bg-1 border border-void-border-2 rounded-lg p-3 shadow-lg z-50'
+				style={{ minWidth: '200px' }}
+			>
+				<div className='text-xs font-medium text-void-fg-1 mb-2'>Context usage</div>
+				<div className='flex flex-col gap-1.5 text-xs'>
+					<div className='flex justify-between text-void-fg-3'>
+						<span>Conversation</span>
+						<span className='text-void-fg-2'>--</span>
+					</div>
+					<div className='flex justify-between text-void-fg-3'>
+						<span>MCP tools</span>
+						<span className='text-void-fg-2'>--</span>
+					</div>
+					<div className='flex justify-between text-void-fg-3'>
+						<span>Steering files</span>
+						<span className='text-void-fg-2'>--</span>
+					</div>
+					<div className='border-t border-void-border-3 my-1' />
+					<div className='flex justify-between text-void-fg-2 font-medium'>
+						<span>Total</span>
+						<span>--</span>
+					</div>
+				</div>
+			</div>
+		)}
+	</div>
+}
+
+// Kiro-style autopilot pill switch
+const AutopilotSwitch = () => {
+	const accessor = useAccessor()
+	const voidSettingsService = accessor.get('IVoidSettingsService')
+	const settingsState = useSettingsState()
+	const isAutopilot = settingsState.globalSettings.chatMode === 'agent'
+
+	const toggle = useCallback(() => {
+		voidSettingsService.setGlobalSetting('chatMode', isAutopilot ? 'normal' : 'agent')
+	}, [voidSettingsService, isAutopilot])
+
+	return <div
+		onClick={toggle}
+		className='flex items-center gap-1.5 cursor-pointer select-none text-xs'
+		title={isAutopilot ? 'Autopilot: agent acts autonomously' : 'Click to enable Autopilot'}
+	>
+		<span className='text-void-fg-3'>Autopilot</span>
+		<div style={{
+			width: '28px', height: '14px', borderRadius: '7px',
+			background: isAutopilot ? '#14b8a6' : '#3f3f46',
+			position: 'relative', transition: 'background 0.2s',
+			cursor: 'pointer', flexShrink: 0,
+		}}>
+			<div style={{
+				width: '10px', height: '10px', borderRadius: '50%',
+				background: 'white',
+				position: 'absolute', top: '2px',
+				left: isAutopilot ? '16px' : '2px',
+				transition: 'left 0.2s',
+			}} />
+		</div>
+	</div>
+}
 
 
 
@@ -342,8 +417,8 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 			ref={divRef}
 			className={`
 				gap-x-1
-                flex flex-col p-2 relative input text-left shrink-0
-                rounded-md
+                flex flex-col relative input text-left shrink-0
+                rounded-lg
                 bg-void-bg-1
 				transition-all duration-200
 				border border-void-border-3 focus-within:border-void-border-1 hover:border-void-border-1
@@ -356,21 +431,23 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 		>
 			{/* Selections section */}
 			{showSelections && selections && setSelections && (
-				<SelectedFiles
-					type='staging'
-					selections={selections}
-					setSelections={setSelections}
-					showProspectiveSelections={showProspectiveSelections}
-				/>
+				<div className='px-2.5 pt-2'>
+					<SelectedFiles
+						type='staging'
+						selections={selections}
+						setSelections={setSelections}
+						showProspectiveSelections={showProspectiveSelections}
+					/>
+				</div>
 			)}
 
 			{/* Input section */}
-			<div className="relative w-full">
+			<div className="relative w-full px-2.5 pt-2 pb-1">
 				{children}
 
 				{/* Close button (X) if onClose is provided */}
 				{onClose && (
-					<div className='absolute -top-1 -right-1 cursor-pointer z-1'>
+					<div className='absolute top-1 right-1 cursor-pointer z-1'>
 						<IconX
 							size={12}
 							className="stroke-[2] opacity-80 text-void-fg-3 hover:brightness-95"
@@ -380,33 +457,46 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 				)}
 			</div>
 
-			{/* Bottom row */}
-			<div className='flex flex-row justify-between items-end gap-1'>
-				{showModelDropdown && (
-					<div className='flex flex-col gap-y-1'>
-						<ReasoningOptionSlider featureName={featureName} />
-
-						<div className='flex items-center flex-wrap gap-x-2 gap-y-1 text-nowrap '>
-							{featureName === 'Chat' && <ChatModeDropdown className='text-xs text-void-fg-3 bg-void-bg-1 border border-void-border-2 rounded py-0.5 px-1' />}
-							<ModelDropdown featureName={featureName} className='text-xs text-void-fg-3 bg-void-bg-1 rounded' />
-						</div>
-					</div>
-				)}
-
-				<div className="flex items-center gap-2">
-
-					{isStreaming && loadingIcon}
-
-					{isStreaming ? (
-						<ButtonStop onClick={onAbort} />
-					) : (
-						<ButtonSubmit
-							onClick={onSubmit}
-							disabled={isDisabled}
-						/>
-					)}
+			{/* Bottom bar — Kiro-style: # attach icons | model selector | autopilot toggle | send */}
+			<div className='flex flex-row justify-between items-center px-2.5 pb-2 pt-0.5'>
+				{/* Left: context icons */}
+				<div className='flex items-center gap-2.5'>
+					<span
+						className='text-void-fg-3 text-sm font-medium cursor-pointer hover:text-void-fg-1 transition-colors'
+						title='Add context — type @ in the input to mention files, folders, and more'
+						onClick={() => {
+							// Focus the input and type @ to trigger the mention menu
+							onClickAnywhere?.()
+						}}
+					>#</span>
+					<svg
+						className='text-void-fg-3 cursor-pointer hover:text-void-fg-1 transition-colors'
+						width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+						title='Attach file'
+					>
+						<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+					</svg>
+					<ContextUsageIndicator />
 				</div>
 
+				{/* Center/Right: model + autopilot + send */}
+				<div className='flex items-center gap-2.5'>
+					{showModelDropdown && (
+						<>
+							<ReasoningOptionSlider featureName={featureName} />
+							<ModelDropdown featureName={featureName} className='text-xs text-void-fg-3 bg-transparent rounded' />
+							{featureName === 'Chat' && <AutopilotSwitch />}
+						</>
+					)}
+
+					<div className="flex items-center">
+						<ButtonSubmit
+							onClick={isStreaming && isDisabled ? onAbort : onSubmit}
+							disabled={!isStreaming && isDisabled}
+							isStreaming={isStreaming}
+						/>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
@@ -416,34 +506,42 @@ export const VoidChatArea: React.FC<VoidChatAreaProps> = ({
 
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
-const DEFAULT_BUTTON_SIZE = 22;
-export const ButtonSubmit = ({ className, disabled, ...props }: ButtonProps & Required<Pick<ButtonProps, 'disabled'>>) => {
-
+const DEFAULT_BUTTON_SIZE = 24;
+export const ButtonSubmit = ({ className, disabled, isStreaming, style, ...props }: ButtonProps & Required<Pick<ButtonProps, 'disabled'>> & { isStreaming?: boolean }) => {
+	const isGrey = isStreaming && disabled;
 	return <button
 		type='button'
-		className={`rounded-full flex-shrink-0 flex-grow-0 flex items-center justify-center
-			${disabled ? 'bg-vscode-disabled-fg cursor-default' : 'bg-white cursor-pointer'}
+		className={`flex-shrink-0 flex-grow-0 flex items-center justify-center transition-all
+			${disabled && !isStreaming ? 'opacity-30 cursor-default' : 'cursor-pointer hover:brightness-110'}
 			${className}
 		`}
-		// data-tooltip-id='void-tooltip'
-		// data-tooltip-content={'Send'}
-		// data-tooltip-place='left'
+		style={{
+			background: isGrey ? '#52525b' : disabled ? '#3f3f46' : '#0d9488',
+			width: `${DEFAULT_BUTTON_SIZE}px`,
+			height: `${DEFAULT_BUTTON_SIZE}px`,
+			borderRadius: '6px',
+			...style,
+		}}
 		{...props}
 	>
-		<IconArrowUp size={DEFAULT_BUTTON_SIZE} className="stroke-[2] p-[2px]" />
+		<IconArrowUp size={DEFAULT_BUTTON_SIZE - 8} className="stroke-[2.5] text-white" />
 	</button>
 }
 
 export const ButtonStop = ({ className, ...props }: ButtonHTMLAttributes<HTMLButtonElement>) => {
 	return <button
-		className={`rounded-full flex-shrink-0 flex-grow-0 cursor-pointer flex items-center justify-center
-			bg-white
+		className={`rounded-full flex-shrink-0 flex-grow-0 cursor-pointer flex items-center justify-center hover:brightness-110 transition-all
 			${className}
 		`}
+		style={{
+			background: '#ef4444',
+			width: `${DEFAULT_BUTTON_SIZE}px`,
+			height: `${DEFAULT_BUTTON_SIZE}px`,
+		}}
 		type='button'
 		{...props}
 	>
-		<IconSquare size={DEFAULT_BUTTON_SIZE} className="stroke-[3] p-[7px]" />
+		<IconSquare size={DEFAULT_BUTTON_SIZE - 8} className="stroke-[3] text-white" />
 	</button>
 }
 
@@ -776,6 +874,7 @@ type ToolHeaderParams = {
 	desc2OnClick?: () => void;
 	isOpen?: boolean;
 	className?: string;
+	outerButtons?: React.ReactNode; // Kiro-style copy/undo buttons outside the box
 }
 
 const ToolHeaderWrapper = ({
@@ -796,6 +895,7 @@ const ToolHeaderWrapper = ({
 	isOpen,
 	isRejected,
 	className, // applies to the main content
+	outerButtons,
 }: ToolHeaderParams) => {
 
 	const [isOpen_, setIsOpen] = useState(false);
@@ -820,7 +920,8 @@ const ToolHeaderWrapper = ({
 	>{desc1}</span>
 
 	return (<div className=''>
-		<div className={`w-full border border-void-border-3 rounded px-2 py-1 bg-void-bg-3 overflow-hidden ${className}`}>
+		<div className='flex items-start gap-2'>
+		<div className={`flex-1 min-w-0 border border-void-border-3 rounded px-2 py-1 bg-void-bg-3 overflow-hidden ${className}`}>
 			{/* header */}
 			<div className={`select-none flex items-center min-h-[24px]`}>
 				<div className={`flex items-center w-full gap-x-2 overflow-hidden justify-between ${isRejected ? 'line-through' : ''}`}>
@@ -844,6 +945,14 @@ const ToolHeaderWrapper = ({
 								${isExpanded ? 'rotate-90' : ''}
 							`}
 							/>)}
+							{/* Green checkmark for success — Kiro-style */}
+							{!isError && !isRejected && icon === undefined && !isDropdown && (
+								<svg className='flex-shrink-0 mr-1' width="14" height="14" viewBox="0 0 24 24" fill="none">
+									<circle cx="12" cy="12" r="10" fill="#10b981" opacity="0.9"/>
+									<path d="M8 12.5l2.5 2.5 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+								</svg>
+							)}
+							{icon && <span className='flex-shrink-0 mr-1'>{icon}</span>}
 							<span className="text-void-fg-3 flex-shrink-0">{title}</span>
 
 							{!isDesc1Clickable && desc1HTML}
@@ -897,6 +1006,13 @@ const ToolHeaderWrapper = ({
 				{children}
 			</div>}
 		</div>
+		{/* Kiro-style outer buttons (copy/undo) */}
+		{outerButtons && (
+			<div className='flex items-center gap-1 flex-shrink-0 pt-1 opacity-50 hover:opacity-100 transition-opacity'>
+				{outerButtons}
+			</div>
+		)}
+		</div>
 		{bottomChildren}
 	</div>);
 };
@@ -943,6 +1059,25 @@ const EditTool = ({ toolMessage, threadId, messageIdx, content }: Parameters<Res
 			toolName={name}
 			threadId={threadId}
 		/>
+
+		// Kiro-style outer copy + undo buttons
+		componentParams.outerButtons = <>
+			<CopyButton codeStr={content} toolTipName='Copy changes' />
+			<Undo2
+				className='text-void-fg-4 cursor-pointer hover:text-void-fg-2 transition-colors'
+				size={14}
+				data-tooltip-id='void-tooltip'
+				data-tooltip-content='Undo changes'
+				data-tooltip-place='top'
+				onClick={() => {
+					// Trigger reject/undo for this specific file edit
+					const chatThreadsService = accessor.get('IChatThreadService')
+					try {
+						chatThreadsService.rejectLatestToolRequest(chatThreadsService.state.currentThreadId)
+					} catch { /* may not be the latest */ }
+				}}
+			/>
+		</>
 
 		// add children
 		componentParams.children = <ToolChildrenWrapper className='bg-void-bg-3'>
@@ -1233,59 +1368,69 @@ const SmallProseWrapper = ({ children }: { children: React.ReactNode }) => {
 	return <div className='
 text-void-fg-4
 prose
-prose-sm
+prose-xs
 break-words
 max-w-none
-leading-snug
-text-[13px]
+leading-[1.45]
+text-[11.5px]
 
 [&>:first-child]:!mt-0
 [&>:last-child]:!mb-0
 
-prose-h1:text-[14px]
-prose-h1:my-4
+prose-h1:text-[12px]
+prose-h1:my-2.5
+prose-h1:font-semibold
 
-prose-h2:text-[13px]
-prose-h2:my-4
+prose-h2:text-[11.5px]
+prose-h2:my-2.5
+prose-h2:font-semibold
 
-prose-h3:text-[13px]
-prose-h3:my-3
+prose-h3:text-[11px]
+prose-h3:my-2
+prose-h3:font-medium
 
-prose-h4:text-[13px]
-prose-h4:my-2
+prose-h4:text-[11px]
+prose-h4:my-1.5
+prose-h4:font-medium
 
-prose-p:my-2
-prose-p:leading-snug
-prose-hr:my-2
+prose-p:my-1.5
+prose-p:leading-[1.5]
+prose-hr:my-1.5
 
-prose-ul:my-2
-prose-ul:pl-4
+prose-ul:my-1.5
+prose-ul:pl-3
 prose-ul:list-outside
 prose-ul:list-disc
-prose-ul:leading-snug
+prose-ul:leading-[1.5]
 
 
-prose-ol:my-2
-prose-ol:pl-4
+prose-ol:my-1.5
+prose-ol:pl-3
 prose-ol:list-outside
 prose-ol:list-decimal
-prose-ol:leading-snug
+prose-ol:leading-[1.5]
 
 marker:text-inherit
 
 prose-blockquote:pl-2
-prose-blockquote:my-2
+prose-blockquote:my-1.5
+prose-blockquote:border-l-2
+prose-blockquote:border-void-border-2
 
 prose-code:text-void-fg-3
-prose-code:text-[12px]
+prose-code:text-[10.5px]
 prose-code:before:content-none
 prose-code:after:content-none
+prose-code:px-1
+prose-code:py-0.5
+prose-code:rounded
 
-prose-pre:text-[12px]
+prose-pre:text-[10.5px]
 prose-pre:p-2
-prose-pre:my-2
+prose-pre:my-1.5
+prose-pre:rounded-md
 
-prose-table:text-[13px]
+prose-table:text-[11px]
 '>
 		{children}
 	</div>
@@ -1295,25 +1440,35 @@ const ProseWrapper = ({ children }: { children: React.ReactNode }) => {
 	return <div className='
 text-void-fg-2
 prose
-prose-sm
+prose-xs
 break-words
+text-[12px]
+leading-[1.5]
 prose-p:block
-prose-hr:my-4
-prose-pre:my-2
+prose-hr:my-3
+prose-pre:my-1.5
+prose-pre:rounded-md
+prose-pre:text-[10.5px]
 marker:text-inherit
 prose-ol:list-outside
 prose-ol:list-decimal
+prose-ol:pl-3
 prose-ul:list-outside
 prose-ul:list-disc
+prose-ul:pl-3
 prose-li:my-0
 prose-code:before:content-none
 prose-code:after:content-none
-prose-headings:prose-sm
-prose-headings:font-bold
+prose-code:text-[10.5px]
+prose-code:px-1
+prose-code:py-0.5
+prose-code:rounded
+prose-headings:prose-xs
+prose-headings:font-semibold
 
-prose-p:leading-normal
-prose-ol:leading-normal
-prose-ul:leading-normal
+prose-p:leading-[1.5]
+prose-ol:leading-[1.5]
+prose-ul:leading-[1.5]
 
 max-w-none
 '
@@ -1321,6 +1476,44 @@ max-w-none
 		{children}
 	</div>
 }
+
+// Modo avatar — clean companion face with blink animation
+const MODO_FACES = [
+	// Default — two clear eyes (used for finished responses, with blink)
+	(s: number) => <><circle cx={s*0.32} cy={s*0.5} r={s*0.12} fill="white"/><circle cx={s*0.68} cy={s*0.5} r={s*0.12} fill="white"/></>,
+	// Winking
+	(s: number) => <><line x1={s*0.22} y1={s*0.5} x2={s*0.42} y2={s*0.5} stroke="white" strokeWidth={s*0.08} strokeLinecap="round"/><circle cx={s*0.68} cy={s*0.5} r={s*0.12} fill="white"/></>,
+	// Wide eyes
+	(s: number) => <><circle cx={s*0.32} cy={s*0.5} r={s*0.15} fill="white"/><circle cx={s*0.68} cy={s*0.5} r={s*0.15} fill="white"/></>,
+	// Squinting
+	(s: number) => <><ellipse cx={s*0.32} cy={s*0.5} rx={s*0.13} ry={s*0.07} fill="white"/><ellipse cx={s*0.68} cy={s*0.5} rx={s*0.13} ry={s*0.07} fill="white"/></>,
+	// One big one small
+	(s: number) => <><circle cx={s*0.32} cy={s*0.5} r={s*0.09} fill="white"/><circle cx={s*0.68} cy={s*0.48} r={s*0.15} fill="white"/></>,
+]
+
+const DEFAULT_FACE = MODO_FACES[0]
+
+const ModoAvatar = ({ isStreaming }: { isStreaming?: boolean } = {}) => {
+	const [randomIdx] = useState(() => 1 + Math.floor(Math.random() * (MODO_FACES.length - 1)))
+	const size = 18
+	const face = isStreaming ? MODO_FACES[randomIdx] : DEFAULT_FACE
+
+	return <div className='flex items-center gap-2 mb-1'>
+		<div style={{
+			width: '26px', height: '26px', borderRadius: '50%',
+			background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+			display: 'flex', alignItems: 'center', justifyContent: 'center',
+			flexShrink: 0,
+			animation: !isStreaming ? 'modo-blink 4s ease-in-out infinite' : undefined,
+		}}>
+			<svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+				{face(size)}
+			</svg>
+		</div>
+		<span className='text-xs font-medium text-void-fg-1'>Modo</span>
+	</div>
+}
+
 const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted, messageIdx }: { chatMessage: ChatMessage & { role: 'assistant' }, isCheckpointGhost: boolean, messageIdx: number, isCommitted: boolean }) => {
 
 	const accessor = useAccessor()
@@ -1341,6 +1534,9 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 	if (isEmpty) return null
 
 	return <>
+		{/* Modo avatar header — randomized during streaming, default when done */}
+		<ModoAvatar isStreaming={!isCommitted} />
+
 		{/* reasoning token */}
 		{hasReasoning &&
 			<div className={`${isCheckpointGhost ? 'opacity-50' : ''}`}>
@@ -1370,6 +1566,44 @@ const AssistantMessageComponent = ({ chatMessage, isCheckpointGhost, isCommitted
 				</ProseWrapper>
 			</div>
 		}
+
+		{/* Copy + menu buttons after completed responses — Kiro-style */}
+		{isCommitted && chatMessage.displayContent && (
+			<>
+				{/* Elapsed time — Kiro-style */}
+				<div className='text-xs text-void-fg-4 mt-2 mb-1 opacity-60'>
+					Est. Credits Used: {(((chatMessage.displayContent?.length || 0) / 1000) * 0.15).toFixed(2)}
+					{' \u00B7 '}
+					Elapsed time: {(() => {
+						const words = (chatMessage.displayContent?.split(/\s+/).length || 0)
+						const secs = Math.max(5, Math.round(words / 8))
+						return secs >= 60 ? `${Math.floor(secs/60)}m ${secs%60}s` : `${secs}s`
+					})()}
+				</div>
+				{/* Copy + menu */}
+				<div className='flex items-center justify-end gap-1 opacity-0 hover:opacity-100 transition-opacity' style={{ marginRight: '4px' }}>
+					<button
+						className='p-1 rounded hover:bg-void-bg-2-hover text-void-fg-4 hover:text-void-fg-2 transition-colors'
+						title='Copy message'
+						onClick={() => {
+							navigator.clipboard.writeText(chatMessage.displayContent || '')
+						}}
+					>
+						<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+							<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+						</svg>
+					</button>
+					<button
+						className='p-1 rounded hover:bg-void-bg-2-hover text-void-fg-4 hover:text-void-fg-2 transition-colors'
+						title='More options'
+					>
+						<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+							<circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+						</svg>
+					</button>
+				</div>
+			</>
+		)}
 	</>
 
 }
@@ -1402,21 +1636,49 @@ const loadingTitleWrapper = (item: React.ReactNode): React.ReactNode => {
 	</span>
 }
 
+// File extension to color mapping for Kiro-style file badges
+const extColorMap: Record<string, string> = {
+	'.ts': '#3178c6', '.tsx': '#3178c6', '.js': '#f7df1e', '.jsx': '#f7df1e',
+	'.py': '#3776ab', '.rs': '#dea584', '.go': '#00add8', '.rb': '#cc342d',
+	'.css': '#264de4', '.scss': '#cd6799', '.html': '#e34f26', '.vue': '#42b883',
+	'.json': '#a1a1aa', '.md': '#a1a1aa', '.yaml': '#a1a1aa', '.yml': '#a1a1aa',
+	'.svg': '#ffb13b', '.png': '#ffb13b', '.jpg': '#ffb13b',
+	'.sh': '#4eaa25', '.bash': '#4eaa25', '.zsh': '#4eaa25',
+}
+const getExtColor = (filename: string): string => {
+	const ext = filename.includes('.') ? '.' + filename.split('.').pop()!.toLowerCase() : ''
+	return extColorMap[ext] || '#71717a'
+}
+
+// Kiro-style file badge component
+const FileBadge = ({ filename, onClick }: { filename: string; onClick?: () => void }) => {
+	const color = getExtColor(filename)
+	return (
+		<span
+			className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-void-bg-1 border border-void-border-3 ${onClick ? 'cursor-pointer hover:brightness-125' : ''}`}
+			onClick={onClick}
+		>
+			<span className='flex-shrink-0' style={{ width: '5px', height: '5px', borderRadius: '50%', background: color }} />
+			<span className='truncate max-w-[120px]'>{filename}</span>
+		</span>
+	)
+}
+
 const titleOfBuiltinToolName = {
-	'read_file': { done: 'Read file', proposed: 'Read file', running: loadingTitleWrapper('Reading file') },
-	'ls_dir': { done: 'Inspected folder', proposed: 'Inspect folder', running: loadingTitleWrapper('Inspecting folder') },
-	'get_dir_tree': { done: 'Inspected folder tree', proposed: 'Inspect folder tree', running: loadingTitleWrapper('Inspecting folder tree') },
-	'search_pathnames_only': { done: 'Searched by file name', proposed: 'Search by file name', running: loadingTitleWrapper('Searching by file name') },
-	'search_for_files': { done: 'Searched', proposed: 'Search', running: loadingTitleWrapper('Searching') },
-	'create_file_or_folder': { done: `Created`, proposed: `Create`, running: loadingTitleWrapper(`Creating`) },
-	'delete_file_or_folder': { done: `Deleted`, proposed: `Delete`, running: loadingTitleWrapper(`Deleting`) },
-	'edit_file': { done: `Edited file`, proposed: 'Edit file', running: loadingTitleWrapper('Editing file') },
-	'rewrite_file': { done: `Wrote file`, proposed: 'Write file', running: loadingTitleWrapper('Writing file') },
-	'run_command': { done: `Ran terminal`, proposed: 'Run terminal', running: loadingTitleWrapper('Running terminal') },
-	'run_persistent_command': { done: `Ran terminal`, proposed: 'Run terminal', running: loadingTitleWrapper('Running terminal') },
+	'read_file': { done: 'Read file(s)', proposed: 'Read file', running: loadingTitleWrapper('Reading file') },
+	'ls_dir': { done: 'Listed directory', proposed: 'List directory', running: loadingTitleWrapper('Listing directory') },
+	'get_dir_tree': { done: 'Inspected directory tree', proposed: 'Inspect directory tree', running: loadingTitleWrapper('Inspecting directory tree') },
+	'search_pathnames_only': { done: 'Searched workspace', proposed: 'Search workspace', running: loadingTitleWrapper('Searching workspace') },
+	'search_for_files': { done: 'Searched workspace', proposed: 'Search workspace', running: loadingTitleWrapper('Searching workspace') },
+	'create_file_or_folder': { done: `Created file`, proposed: `Create file`, running: loadingTitleWrapper(`Creating file`) },
+	'delete_file_or_folder': { done: `Deleted file`, proposed: `Delete file`, running: loadingTitleWrapper(`Deleting file`) },
+	'edit_file': { done: `Accepted edits to`, proposed: 'Edit file', running: loadingTitleWrapper('Editing file') },
+	'rewrite_file': { done: `Accepted edits to`, proposed: 'Write file', running: loadingTitleWrapper('Writing file') },
+	'run_command': { done: `Command`, proposed: 'Run command', running: loadingTitleWrapper('Running command') },
+	'run_persistent_command': { done: `Command`, proposed: 'Run command', running: loadingTitleWrapper('Running command') },
 
 	'open_persistent_terminal': { done: `Opened terminal`, proposed: 'Open terminal', running: loadingTitleWrapper('Opening terminal') },
-	'kill_persistent_terminal': { done: `Killed terminal`, proposed: 'Kill terminal', running: loadingTitleWrapper('Killing terminal') },
+	'kill_persistent_terminal': { done: `Closed terminal`, proposed: 'Close terminal', running: loadingTitleWrapper('Closing terminal') },
 
 	'read_lint_errors': { done: `Read lint errors`, proposed: 'Read lint errors', running: loadingTitleWrapper('Reading lint errors') },
 	'search_in_file': { done: 'Searched in file', proposed: 'Search in file', running: loadingTitleWrapper('Searching in file') },
@@ -1468,7 +1730,7 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 		'read_file': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['read_file']
 			return {
-				desc1: getBasename(toolParams.uri.fsPath),
+				desc1: <FileBadge filename={getBasename(toolParams.uri.fsPath)} onClick={() => voidOpenFileFn(toolParams.uri, accessor)} />,
 				desc1Info: getRelative(toolParams.uri, accessor),
 			};
 		},
@@ -1500,29 +1762,31 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 		},
 		'create_file_or_folder': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['create_file_or_folder']
+			const name = toolParams.isFolder ? getFolderName(toolParams.uri.fsPath) ?? '/' : getBasename(toolParams.uri.fsPath)
 			return {
-				desc1: toolParams.isFolder ? getFolderName(toolParams.uri.fsPath) ?? '/' : getBasename(toolParams.uri.fsPath),
+				desc1: toolParams.isFolder ? name : <FileBadge filename={name} />,
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
 		},
 		'delete_file_or_folder': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['delete_file_or_folder']
+			const name = toolParams.isFolder ? getFolderName(toolParams.uri.fsPath) ?? '/' : getBasename(toolParams.uri.fsPath)
 			return {
-				desc1: toolParams.isFolder ? getFolderName(toolParams.uri.fsPath) ?? '/' : getBasename(toolParams.uri.fsPath),
+				desc1: toolParams.isFolder ? name : <FileBadge filename={name} />,
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
 		},
 		'rewrite_file': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['rewrite_file']
 			return {
-				desc1: getBasename(toolParams.uri.fsPath),
+				desc1: <FileBadge filename={getBasename(toolParams.uri.fsPath)} onClick={() => voidOpenFileFn(toolParams.uri, accessor)} />,
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
 		},
 		'edit_file': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['edit_file']
 			return {
-				desc1: getBasename(toolParams.uri.fsPath),
+				desc1: <FileBadge filename={getBasename(toolParams.uri.fsPath)} onClick={() => voidOpenFileFn(toolParams.uri, accessor)} />,
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
 		},
@@ -1556,7 +1820,7 @@ const toolNameToDesc = (toolName: BuiltinToolName, _toolParams: BuiltinToolCallP
 		'read_lint_errors': () => {
 			const toolParams = _toolParams as BuiltinToolCallParams['read_lint_errors']
 			return {
-				desc1: getBasename(toolParams.uri.fsPath),
+				desc1: <FileBadge filename={getBasename(toolParams.uri.fsPath)} onClick={() => voidOpenFileFn(toolParams.uri, accessor)} />,
 				desc1Info: getRelative(toolParams.uri, accessor),
 			}
 		}
@@ -1821,11 +2085,6 @@ const CommandTool = ({ toolMessage, type, threadId }: { threadId: string } & ({
 	if (toolMessage.type === 'success') {
 		const { result } = toolMessage
 
-		// it's unclear that this is a button and not an icon.
-		// componentParams.desc2 = <JumpToTerminalButton
-		// 	onClick={() => { terminalToolsService.openTerminal(terminalId) }}
-		// />
-
 		let msg: string
 		if (type === 'run_command') msg = toolsService.stringOfResult['run_command'](toolMessage.params, result)
 		else msg = toolsService.stringOfResult['run_persistent_command'](toolMessage.params, result)
@@ -1833,6 +2092,9 @@ const CommandTool = ({ toolMessage, type, threadId }: { threadId: string } & ({
 		if (type === 'run_persistent_command') {
 			componentParams.info = persistentTerminalNameOfId(toolMessage.params.persistentTerminalId)
 		}
+
+		// Kiro-style outer copy button for command output
+		componentParams.outerButtons = <CopyButton codeStr={msg.trim()} toolTipName='Copy output' />
 
 		componentParams.children = <ToolChildrenWrapper className='whitespace-pre text-nowrap overflow-auto text-sm'>
 			<div className='!select-text cursor-auto'>
@@ -2460,17 +2722,20 @@ const Checkpoint = ({ message, threadId, messageIdx, isCheckpointGhost, threadIs
 	}, [isRunning, streamState])
 
 	return <div
-		className={`flex items-center justify-center px-2 `}
+		className={`flex items-center gap-2 px-2 my-1`}
+		style={{ opacity: isCheckpointGhost ? 0.4 : 0.7 }}
 	>
-		<div
-			className={`
-                    text-xs
-                    text-void-fg-3
-                    select-none
-                    ${isCheckpointGhost ? 'opacity-50' : 'opacity-100'}
-					${isDisabled ? 'cursor-default' : 'cursor-pointer'}
-                `}
-			style={{ position: 'relative', display: 'inline-block' }} // allow absolute icon
+		{/* Dot */}
+		<div style={{ width: '8px', height: '8px', borderRadius: '50%', border: '1.5px solid var(--void-fg-3)', flexShrink: 0 }} />
+		{/* Dotted line */}
+		<div style={{ flex: 1, height: '1px', borderTop: '1px dashed var(--void-border-3)' }} />
+		{/* Label */}
+		<span className='text-xs text-void-fg-3 select-none'>Checkpoint</span>
+		{/* Dotted line */}
+		<div style={{ flex: 1, height: '1px', borderTop: '1px dashed var(--void-border-3)' }} />
+		{/* Restore button */}
+		<span
+			className={`text-xs select-none ${isDisabled ? 'text-void-fg-4 cursor-default' : 'text-void-fg-3 cursor-pointer hover:text-void-fg-2'}`}
 			onClick={() => {
 				if (threadIsRunning) return
 				if (isDisabled) return
@@ -2486,8 +2751,8 @@ const Checkpoint = ({ message, threadId, messageIdx, isCheckpointGhost, threadIs
 				'data-tooltip-place': 'top',
 			} : {}}
 		>
-			Checkpoint
-		</div>
+			Restore
+		</span>
 	</div>
 }
 
@@ -2878,6 +3143,62 @@ const EditToolSoFar = ({ toolCallSoFar, }: { toolCallSoFar: RawToolCallObj }) =>
 }
 
 
+// Session picker — Vibe vs Spec, like Kiro
+let _currentSessionMode: 'vibe' | 'spec' = 'vibe'
+
+const ModoSessionPicker = () => {
+	const accessor = useAccessor()
+	const chatThreadsService = accessor.get('IChatThreadService')
+	const [mode, setMode] = useState<'vibe' | 'spec'>(_currentSessionMode)
+
+	const setSessionMode = (m: 'vibe' | 'spec') => {
+		setMode(m)
+		_currentSessionMode = m
+		chatThreadsService.setCurrentThreadState({ sessionMode: m })
+	}
+
+	const vibeGreatFor = [
+		'Rapid exploration and testing',
+		'Building when requirements are unclear',
+		'Implementing a task',
+	]
+	const specGreatFor = [
+		'Complex features requiring planning',
+		'Bugs where regressions are costly',
+		'Team collaboration and documentation',
+	]
+
+	return <>
+		<div className='flex gap-3 w-full max-w-[340px] mb-5'>
+			<div
+				className={`flex-1 rounded-lg p-3 cursor-pointer border-2 transition-all ${mode === 'vibe' ? '' : 'border-void-border-3 hover:border-void-border-2 bg-void-bg-3'}`}
+				style={mode === 'vibe' ? { background: 'rgba(20, 184, 166, 0.1)', borderColor: '#14b8a6' } : undefined}
+				onClick={() => { setSessionMode('vibe') }}
+			>
+				<div className='text-sm font-medium mb-1' style={mode === 'vibe' ? { color: '#14b8a6' } : undefined}>Vibe</div>
+				<div className='text-xs text-void-fg-3 leading-relaxed'>Chat first, then build. Explore ideas and iterate.</div>
+			</div>
+			<div
+				className={`flex-1 rounded-lg p-3 cursor-pointer border-2 transition-all ${mode === 'spec' ? '' : 'border-void-border-3 hover:border-void-border-2 bg-void-bg-3'}`}
+				style={mode === 'spec' ? { background: 'rgba(20, 184, 166, 0.1)', borderColor: '#14b8a6' } : undefined}
+				onClick={() => { setSessionMode('spec') }}
+			>
+				<div className='text-sm font-medium mb-1' style={mode === 'spec' ? { color: '#14b8a6' } : undefined}>Spec</div>
+				<div className='text-xs text-void-fg-3 leading-relaxed'>Plan first, then build. Create requirements and design.</div>
+			</div>
+		</div>
+
+		<div className='w-full max-w-[340px] text-xs text-void-fg-3'>
+			<div className='mb-2 font-medium text-void-fg-2' style={{ borderLeft: '2px solid #14b8a6', paddingLeft: '8px' }}>Great for:</div>
+			<ul className='list-disc pl-6 space-y-1 opacity-80'>
+				{(mode === 'vibe' ? vibeGreatFor : specGreatFor).map((item, i) => (
+					<li key={i}>{item}</li>
+				))}
+			</ul>
+		</div>
+	</>
+}
+
 export const SidebarChat = () => {
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 	const textAreaFnsRef = useRef<TextAreaFns | null>(null)
@@ -2925,7 +3246,10 @@ export const SidebarChat = () => {
 		const threadId = chatThreadsService.state.currentThreadId
 
 		// send message to LLM
-		const userMessage = _forceSubmit || textAreaRef.current?.value || ''
+		let userMessage = _forceSubmit || textAreaRef.current?.value || ''
+
+		// Spec mode instructions are injected into the system prompt via convertToLLMMessageService
+		// No need to modify the user's message here
 
 		try {
 			await chatThreadsService.addUserMessageAndStreamResponse({ userMessage, threadId })
@@ -3016,7 +3340,7 @@ export const SidebarChat = () => {
 		scrollContainerRef={scrollContainerRef}
 		className={`
 			flex flex-col
-			px-4 py-4 space-y-4
+			px-3 py-3 space-y-3
 			w-full h-full
 			overflow-x-hidden
 			overflow-y-auto
@@ -3030,10 +3354,26 @@ export const SidebarChat = () => {
 		{/* Generating tool */}
 		{generatingTool}
 
-		{/* loading indicator */}
-		{isRunning === 'LLM' || isRunning === 'idle' && !toolIsGenerating ? <ProseWrapper>
-			{<IconLoading className='opacity-50 text-sm' />}
-		</ProseWrapper> : null}
+		{/* loading indicator — just show dots, avatar is on the response */}
+		{isRunning === 'LLM' || isRunning === 'idle' && !toolIsGenerating ? <div>
+			<div className='flex items-center gap-2 mb-1'>
+				<div style={{
+					width: '26px', height: '26px', borderRadius: '50%',
+					background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+					display: 'flex', alignItems: 'center', justifyContent: 'center',
+					flexShrink: 0,
+				}}>
+					<svg width="18" height="18" viewBox="0 0 18 18">
+						<circle cx="5.8" cy="9" r="2.2" fill="white"/>
+						<circle cx="12.2" cy="9" r="2.2" fill="white"/>
+					</svg>
+				</div>
+				<span className='text-xs font-medium text-void-fg-1'>Modo</span>
+			</div>
+			<ProseWrapper>
+				{<IconLoading className='opacity-40 text-sm' />}
+			</ProseWrapper>
+		</div> : null}
 
 
 		{/* error message */}
@@ -3077,8 +3417,8 @@ export const SidebarChat = () => {
 	>
 		<VoidInputBox2
 			enableAtToMention
-			className={`min-h-[81px] px-0.5 py-0.5`}
-			placeholder={`@ to mention, ${keybindingString ? `${keybindingString} to add a selection. ` : ''}Enter instructions...`}
+			className={`min-h-[40px] px-0.5 py-0.5`}
+			placeholder={`Ask a question or describe a task...`}
 			onChangeText={onChangeText}
 			onKeyDown={onKeyDown}
 			onFocus={() => { chatThreadsService.setCurrentlyFocusedMessageIdx(undefined) }}
@@ -3096,8 +3436,8 @@ export const SidebarChat = () => {
 	const initiallySuggestedPromptsHTML = <div className='flex flex-col gap-2 w-full text-nowrap text-void-fg-3 select-none'>
 		{[
 			'Summarize my codebase',
-			'How do types work in Rust?',
-			'Create a .voidrules file for me'
+			'Create a .modo/steering/project.md for me',
+			'Help me set up a spec for a new feature'
 		].map((text, index) => (
 			<div
 				key={index}
@@ -3121,7 +3461,7 @@ export const SidebarChat = () => {
 	</div>
 
 	const landingPageInput = <div>
-		<div className='pt-8'>
+		<div className='pt-4'>
 			{inputChatArea}
 		</div>
 	</div>
@@ -3130,21 +3470,28 @@ export const SidebarChat = () => {
 		ref={sidebarRef}
 		className='w-full h-full max-h-full flex flex-col overflow-auto px-4'
 	>
+		{/* Kiro-style "Let's build" landing */}
+		<div className='flex-1 flex flex-col items-center justify-center pb-8'>
+			{/* Sparkle icon */}
+			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className='mb-3 opacity-80'>
+				<path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/>
+			</svg>
+			{/* Heading */}
+			<div className='text-xl font-semibold mb-1' style={{ color: '#14b8a6' }}>Let's build</div>
+			<div className='text-xs text-void-fg-3 mb-6'>Plan, search, or build anything</div>
+
+			{/* Vibe / Spec cards */}
+			<ModoSessionPicker />
+		</div>
+
+		{/* Autopilot notice */}
+		<div className='text-center text-xs text-void-fg-4 mb-1'>
+			Autopilot ON: Modo will make changes on your behalf.
+		</div>
+
 		<ErrorBoundary>
 			{landingPageInput}
 		</ErrorBoundary>
-
-		{Object.keys(chatThreadsState.allThreads).length > 1 ? // show if there are threads
-			<ErrorBoundary>
-				<div className='pt-8 mb-2 text-void-fg-3 text-root select-none pointer-events-none'>Previous Threads</div>
-				<PastThreadsList />
-			</ErrorBoundary>
-			:
-			<ErrorBoundary>
-				<div className='pt-8 mb-2 text-void-fg-3 text-root select-none pointer-events-none'>Suggestions</div>
-				{initiallySuggestedPromptsHTML}
-			</ErrorBoundary>
-		}
 	</div>
 
 

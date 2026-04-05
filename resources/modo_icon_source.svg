@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <!-- Background — teal rounded square -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" fill="#0d9488"/>
+
+  <!-- Body — white -->
+  <ellipse cx="512" cy="530" rx="280" ry="300" fill="white"/>
+
+  <!-- Antenna — white -->
+  <line x1="420" y1="250" x2="370" y2="140" stroke="white" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="365" cy="125" r="18" fill="white"/>
+  <line x1="480" y1="235" x2="500" y2="130" stroke="white" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
+  <circle cx="502" cy="118" r="12" fill="white" opacity="0.7"/>
+
+  <!-- Eyes — teal cutouts (same as background) -->
+  <circle cx="430" cy="500" r="38" fill="#0d9488"/>
+  <circle cx="594" cy="500" r="38" fill="#0d9488"/>
+
+  <!-- Mouth — teal cutout -->
+  <path d="M420 680 L600 674" stroke="#0d9488" stroke-width="12" stroke-linecap="round"/>
+  <path d="M596 674 L625 656" stroke="#0d9488" stroke-width="9" stroke-linecap="round"/>
+</svg>

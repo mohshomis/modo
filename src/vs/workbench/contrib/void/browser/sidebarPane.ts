@@ -74,8 +74,9 @@ class SidebarViewPane extends ViewPane {
 
 	protected override renderBody(parent: HTMLElement): void {
 		super.renderBody(parent);
-		// parent.style.overflow = 'auto'
 		parent.style.userSelect = 'text'
+		parent.style.height = '100%'
+		parent.style.overflow = 'hidden'
 
 		// gets set immediately
 		this.instantiationService.invokeFunction(accessor => {
@@ -89,6 +90,11 @@ class SidebarViewPane extends ViewPane {
 		super.layoutBody(height, width)
 		this.element.style.height = `${height}px`
 		this.element.style.width = `${width}px`
+		// Ensure the pane body fills available space
+		const body = this.element.querySelector('.pane-body') as HTMLElement
+		if (body) {
+			body.style.height = `${height}px`
+		}
 	}
 
 }
@@ -98,7 +104,7 @@ class SidebarViewPane extends ViewPane {
 // ---------- Register viewpane inside the void container ----------
 
 // const voidThemeIcon = Codicon.symbolObject;
-// const voidViewIcon = registerIcon('void-view-icon', voidThemeIcon, localize('voidViewIcon', 'View icon of the Void chat view.'));
+// const voidViewIcon = registerIcon('void-view-icon', voidThemeIcon, localize('voidViewIcon', 'View icon of the Modo chat view.'));
 
 // called VIEWLET_ID in other places for some reason
 export const VOID_VIEW_CONTAINER_ID = 'workbench.view.void'
@@ -108,7 +114,7 @@ export const VOID_VIEW_ID = VOID_VIEW_CONTAINER_ID
 const viewContainerRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
 const container = viewContainerRegistry.registerViewContainer({
 	id: VOID_VIEW_CONTAINER_ID,
-	title: nls.localize2('voidContainer', 'Chat'), // this is used to say "Void" (Ctrl + L)
+	title: nls.localize2('voidContainer', ' '), // hidden — session tabs in React handle this
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [VOID_VIEW_CONTAINER_ID, {
 		mergeViewWithContainerWhenSingleView: true,
 		orientation: Orientation.HORIZONTAL,
@@ -117,7 +123,7 @@ const container = viewContainerRegistry.registerViewContainer({
 	order: 1,
 
 	rejectAddedViews: true,
-	icon: Codicon.symbolMethod,
+	icon: Codicon.comment, // Chat icon for Modo - cleaner, Kiro-style
 
 
 }, ViewContainerLocation.AuxiliaryBar, { doNotRegisterOpenCommand: true, isDefault: true });
@@ -130,7 +136,7 @@ viewsRegistry.registerViews([{
 	id: VOID_VIEW_ID,
 	hideByDefault: false, // start open
 	// containerIcon: voidViewIcon,
-	name: nls.localize2('voidChat', ''), // this says ... : CHAT
+	name: nls.localize2('voidChat', 'New Session'), // Kiro-style session name
 	ctorDescriptor: new SyncDescriptor(SidebarViewPane),
 	canToggleVisibility: false,
 	canMoveView: false, // can't move this out of its container
@@ -154,7 +160,7 @@ registerAction2(class extends Action2 {
 	constructor() {
 		super({
 			id: VOID_OPEN_SIDEBAR_ACTION_ID,
-			title: 'Open Void Sidebar',
+			title: 'Open Modo Sidebar',
 		})
 	}
 	run(accessor: ServicesAccessor): void {

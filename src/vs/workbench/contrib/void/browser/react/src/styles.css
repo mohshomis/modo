@@ -8,6 +8,7 @@
 @tailwind utilities;
 
 & {
+	/* Modo color system — teal/cyan accent instead of Void's blue */
 	--void-bg-1: var(--vscode-input-background);
 	--void-bg-1-alt: var(--vscode-badge-background);
 	--void-bg-2: var(--vscode-sideBar-background);
@@ -19,7 +20,6 @@
 	--void-fg-1: var(--vscode-editor-foreground);
 	--void-fg-2: var(--vscode-input-foreground);
 	--void-fg-3: var(--vscode-input-placeholderForeground);
-	/* --void-fg-4: var(--vscode-tab-inactiveForeground); */
 	--void-fg-4: var(--vscode-list-deemphasizedForeground);
 
 	--void-warning: var(--vscode-charts-yellow);
@@ -29,8 +29,36 @@
 	--void-border-3: var(--vscode-commandCenter-inactiveBorder);
 	--void-border-4: var(--vscode-editorGroup-border);
 
-	--void-ring-color: #007FD4;
-	--void-link-color: #007FD4;
+	/* Modo accent: teal instead of blue */
+	--void-ring-color: #0d9488;
+	--void-link-color: #14b8a6;
+
+	/* Modo-specific colors */
+	--modo-accent: #0d9488;
+	--modo-accent-light: #14b8a6;
+	--modo-accent-dim: #0f766e;
+	--modo-spec-color: #8b5cf6;
+	--modo-hook-color: #f59e0b;
+	--modo-success: #10b981;
+	--modo-danger: #ef4444;
+	--modo-tool-success: #10b981;
+	--modo-tool-border: #27272a;
+}
+
+/* Modo global typography — tighter, smaller, more polished */
+& {
+	font-size: 12px;
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-feature-settings: 'liga' 1, 'calt' 1;
+	letter-spacing: -0.01em;
+}
+
+/* Modo avatar blink animation */
+@keyframes modo-blink {
+	0%, 90%, 100% { transform: scaleY(1); }
+	95% { transform: scaleY(0.1); }
 }
 
 .select-child-restyle select {

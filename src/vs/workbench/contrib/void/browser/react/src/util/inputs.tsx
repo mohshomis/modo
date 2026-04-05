@@ -396,7 +396,7 @@ export const VoidInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fun
 		const startPos = textarea.selectionStart;
 		const endPos = textarea.selectionEnd;
 
-		// Get the text before the cursor, excluding the @ symbol that triggered the menu
+		// Get the text before the cursor, excluding the # symbol that triggered the menu
 		const textBeforeCursor = textarea.value.substring(0, startPos - 1);
 		const textAfterCursor = textarea.value.substring(endPos);
 
@@ -764,7 +764,7 @@ export const VoidInputBox2 = forwardRef<HTMLTextAreaElement, InputBox2Props>(fun
 			onInput={useCallback((event: React.FormEvent<HTMLTextAreaElement>) => {
 				const latestChange = (event.nativeEvent as InputEvent).data;
 
-				if (latestChange === '@') {
+				if (latestChange === '#') {
 					onOpenOptionMenu()
 				}
 

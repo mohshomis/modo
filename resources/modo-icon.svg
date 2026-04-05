@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#08080c"/>
+      <stop offset="100%" stop-color="#0c0c10"/>
+    </linearGradient>
+    <linearGradient id="face" x1="160" y1="120" x2="360" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="40%">
+      <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#08080c" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="108" fill="url(#glow)"/>
+
+  <!-- Main face circle -->
+  <circle cx="256" cy="256" r="140" fill="url(#face)" filter="url(#softGlow)"/>
+
+  <!-- Ring around face -->
+  <circle cx="256" cy="256" r="148" fill="none" stroke="#5eead4" stroke-width="2.5" stroke-opacity="0.3"/>
+
+  <!-- Left eye -->
+  <ellipse cx="210" cy="240" rx="22" ry="24" fill="white"/>
+  <circle cx="214" cy="238" r="10" fill="#08080c"/>
+  <circle cx="218" cy="234" r="3.5" fill="white"/>
+
+  <!-- Right eye -->
+  <ellipse cx="302" cy="240" rx="22" ry="24" fill="white"/>
+  <circle cx="306" cy="238" r="10" fill="#08080c"/>
+  <circle cx="310" cy="234" r="3.5" fill="white"/>
+
+  <!-- Subtle friendly smile -->
+  <path d="M220 295 Q256 325 292 295" stroke="white" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.85"/>
+
+  <!-- Subtle cheek blush -->
+  <circle cx="190" cy="280" r="16" fill="#5eead4" opacity="0.15"/>
+  <circle cx="322" cy="280" r="16" fill="#5eead4" opacity="0.15"/>
+</svg>

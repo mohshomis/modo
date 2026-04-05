@@ -32,11 +32,12 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark  {
 	display: flex;
 	height: 100%;
-	max-width: 290px;
+	max-width: 420px;
 	margin: auto;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	gap: 0px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container:not(.empty) > .editor-group-watermark {
@@ -45,7 +46,7 @@
 
 .monaco-workbench .part.editor > .content:not(.empty) .editor-group-container.empty > .editor-group-watermark,
 .monaco-workbench .part.editor > .content.auxiliary .editor-group-container.empty > .editor-group-watermark {
-	max-width: 200px;
+	max-width: 420px;
 	height: calc(100% - 70px);
 }
 
@@ -55,6 +56,7 @@
 	width: 100%;
 	max-height: 100%;
 	aspect-ratio: 1/1;
+	margin-bottom: 4px;
 	background-image: url('./void_cube_noshadow.png'); /* // Void */
 	background-size: contain;
 	background-position-x: center;
@@ -63,17 +65,17 @@
 
 .void-void-icon,
 .monaco-workbench.vs-dark .part.editor > .content .editor-group-container .editor-group-watermark > .letterpress {
-	background-image: url('./void_cube_noshadow.png'); /* // Void */
+	background-image: url('./modo_logo.svg'); /* Modo */
 }
 
 .void-void-icon,
 .monaco-workbench.hc-light .part.editor > .content .editor-group-container .editor-group-watermark > .letterpress {
-	background-image: url('./void_cube_noshadow.png'); /* // Void */
+	background-image: url('./modo_logo.svg'); /* Modo */
 }
 
 .void-void-icon,
 .monaco-workbench.hc-black .part.editor > .content .editor-group-container .editor-group-watermark > .letterpress {
-	background-image: url('./void_cube_noshadow.png'); /* // Void */
+	background-image: url('./modo_logo.svg'); /* Modo */
 }
 
 .monaco-workbench .part.editor > .content:not(.empty) .editor-group-container > .editor-group-watermark > .shortcuts,
@@ -85,7 +87,7 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark > .shortcuts > .watermark-box {
 	display: inline-table;
 	border-collapse: separate;
-	border-spacing: 11px 17px;
+	border-spacing: 14px 10px;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark > .shortcuts dl {
@@ -97,7 +99,9 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark > .shortcuts dt {
 	text-align: right;
-	letter-spacing: 0.04em
+	letter-spacing: 0.04em;
+	font-size: 14px;
+	font-weight: 600;
 }
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark > .shortcuts dd {

@@ -74,6 +74,14 @@ module.exports = {
 				'void-ring-color': 'var(--void-ring-color)',
 				'void-link-color': 'var(--void-link-color)',
 
+				'modo-accent': 'var(--modo-accent)',
+				'modo-accent-light': 'var(--modo-accent-light)',
+				'modo-accent-dim': 'var(--modo-accent-dim)',
+				'modo-spec': 'var(--modo-spec-color)',
+				'modo-hook': 'var(--modo-hook-color)',
+				'modo-success': 'var(--modo-success)',
+				'modo-danger': 'var(--modo-danger)',
+
 				vscode: {
 					// see: https://code.visualstudio.com/api/extension-guides/webview#theming-webview-content
 

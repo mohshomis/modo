@@ -572,7 +572,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_ACCEPT_DIFF_ACTION_ID,
 			f1: true,
-			title: localize2('voidAcceptDiffAction', 'Void: Accept Diff'),
+			title: localize2('voidAcceptDiffAction', 'Modo: Accept Diff'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.Enter,
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.Enter },
@@ -615,7 +615,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_REJECT_DIFF_ACTION_ID,
 			f1: true,
-			title: localize2('voidRejectDiffAction', 'Void: Reject Diff'),
+			title: localize2('voidRejectDiffAction', 'Modo: Reject Diff'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.Backspace,
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.Backspace },
@@ -656,7 +656,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_GOTO_NEXT_DIFF_ACTION_ID,
 			f1: true,
-			title: localize2('voidGoToNextDiffAction', 'Void: Go to Next Diff'),
+			title: localize2('voidGoToNextDiffAction', 'Modo: Go to Next Diff'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.DownArrow,
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.DownArrow },
@@ -683,7 +683,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_GOTO_PREV_DIFF_ACTION_ID,
 			f1: true,
-			title: localize2('voidGoToPrevDiffAction', 'Void: Go to Previous Diff'),
+			title: localize2('voidGoToPrevDiffAction', 'Modo: Go to Previous Diff'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.UpArrow,
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.UpArrow },
@@ -710,7 +710,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_GOTO_NEXT_URI_ACTION_ID,
 			f1: true,
-			title: localize2('voidGoToNextUriAction', 'Void: Go to Next File with Diffs'),
+			title: localize2('voidGoToNextUriAction', 'Modo: Go to Next File with Diffs'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.RightArrow,
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.RightArrow },
@@ -737,7 +737,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_GOTO_PREV_URI_ACTION_ID,
 			f1: true,
-			title: localize2('voidGoToPrevUriAction', 'Void: Go to Previous File with Diffs'),
+			title: localize2('voidGoToPrevUriAction', 'Modo: Go to Previous File with Diffs'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Alt | KeyMod.Shift | KeyCode.LeftArrow,
 				mac: { primary: KeyMod.WinCtrl | KeyMod.Alt | KeyCode.LeftArrow },
@@ -764,7 +764,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_ACCEPT_FILE_ACTION_ID,
 			f1: true,
-			title: localize2('voidAcceptFileAction', 'Void: Accept All Diffs in Current File'),
+			title: localize2('voidAcceptFileAction', 'Modo: Accept All Diffs in Current File'),
 			keybinding: {
 				primary: KeyMod.Alt | KeyMod.Shift | KeyCode.Enter,
 				weight: KeybindingWeight.VoidExtension,
@@ -795,7 +795,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_REJECT_FILE_ACTION_ID,
 			f1: true,
-			title: localize2('voidRejectFileAction', 'Void: Reject All Diffs in Current File'),
+			title: localize2('voidRejectFileAction', 'Modo: Reject All Diffs in Current File'),
 			keybinding: {
 				primary: KeyMod.Alt | KeyMod.Shift | KeyCode.Backspace,
 				weight: KeybindingWeight.VoidExtension,
@@ -826,7 +826,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_ACCEPT_ALL_DIFFS_ACTION_ID,
 			f1: true,
-			title: localize2('voidAcceptAllDiffsAction', 'Void: Accept All Diffs in All Files'),
+			title: localize2('voidAcceptAllDiffsAction', 'Modo: Accept All Diffs in All Files'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Enter,
 				weight: KeybindingWeight.VoidExtension,
@@ -851,7 +851,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: VOID_REJECT_ALL_DIFFS_ACTION_ID,
 			f1: true,
-			title: localize2('voidRejectAllDiffsAction', 'Void: Reject All Diffs in All Files'),
+			title: localize2('voidRejectAllDiffsAction', 'Modo: Reject All Diffs in All Files'),
 			keybinding: {
 				primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.Backspace,
 				weight: KeybindingWeight.VoidExtension,

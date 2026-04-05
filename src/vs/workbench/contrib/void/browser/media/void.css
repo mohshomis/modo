@@ -24,23 +24,23 @@
 }
 
 
-/* Renamed from void-watermark-button to void-openfolder-button */
+/* Renamed from void-watermark-button to modo-openfolder-button */
 .void-openfolder-button {
     padding: 8px 20px;
-    background-color: #306dce;
+    background-color: #0d9488;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     outline: none !important;
 	box-shadow: none !important;
 	cursor: pointer;
 	transition: background-color 0.2s ease;
 }
 .void-openfolder-button:hover {
-    background-color: #2563eb;
+    background-color: #0f766e;
 }
 .void-openfolder-button:active {
-    background-color: #2563eb;
+    background-color: #0f766e;
 }
 
 /* Added for Open SSH button with slightly darker color */
@@ -85,7 +85,7 @@
 }
 
 .void-link {
-	color: #3b82f6;
+	color: #14b8a6;
 	cursor: pointer;
 	transition: all 0.2s ease;
 }
@@ -94,7 +94,7 @@
 	opacity: 80%;
 }
 
-/* styles for all containers used by void */
+/* styles for all containers used by modo */
 .void-scope {
 	--scrollbar-vertical-width: 8px;
 	--scrollbar-horizontal-height: 6px;
@@ -201,4 +201,48 @@
 .void-scrollable-element::-webkit-scrollbar-corner,
 .void-scrollable-element *::-webkit-scrollbar-corner {
 	background-color: var(--void-bg-3) !important;
+}
+
+/* Hide the VS Code auxiliary bar title bar and header — Modo uses its own session tab bar */
+.monaco-workbench .part.auxiliarybar > .title {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	overflow: hidden !important;
+}
+.monaco-workbench .part.auxiliarybar > .header-or-footer {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	overflow: hidden !important;
+}
+.monaco-workbench .part.auxiliarybar .pane > .pane-header {
+	display: none !important;
+	height: 0 !important;
+	min-height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
+}
+.monaco-workbench .auxiliarybar.part > .composite.title {
+	display: none !important;
+	height: 0 !important;
+}
+.monaco-workbench .auxiliarybar.part.pane-composite-part > .composite.title {
+	display: none !important;
+	height: 0 !important;
+}
+/* Force the auxiliary bar content and pane to fill all space — no grey gap */
+.monaco-workbench .part.auxiliarybar > .content {
+	background: var(--vscode-sideBar-background, #1e1e1e) !important;
+}
+.monaco-workbench .part.auxiliarybar > .content .pane {
+	background: var(--vscode-sideBar-background, #1e1e1e) !important;
+}
+.monaco-workbench .part.auxiliarybar > .content .pane > .pane-body {
+	flex: 1 !important;
+	background: var(--vscode-sideBar-background, #1e1e1e) !important;
+}
+.monaco-workbench .part.auxiliarybar {
+	background: var(--vscode-sideBar-background, #1e1e1e) !important;
 }

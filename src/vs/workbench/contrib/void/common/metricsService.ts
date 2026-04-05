@@ -59,7 +59,7 @@ registerAction2(class extends Action2 {
 		super({
 			id: 'voidDebugInfo',
 			f1: true,
-			title: localize2('voidMetricsDebug', 'Void: Log Debug Info'),
+			title: localize2('voidMetricsDebug', 'Modo: Log Debug Info'),
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
@@ -68,6 +68,6 @@ registerAction2(class extends Action2 {
 
 		const debugProperties = await metricsService.getDebuggingProperties()
 		console.log('Metrics:', debugProperties)
-		notifService.info(`Void Debug info:\n${JSON.stringify(debugProperties, null, 2)}`)
+		notifService.info(`Modo Debug info:\n${JSON.stringify(debugProperties, null, 2)}`)
 	}
 })

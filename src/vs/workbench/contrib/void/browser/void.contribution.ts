@@ -64,6 +64,41 @@ import './fileService.js'
 // register source control management
 import './voidSCMService.js'
 
+// ---------- Modo services (spec-driven development, steering, hooks) ----------
+
+// steering
+import '../common/modoSteeringService.js'
+
+// hooks
+import '../common/modoHookService.js'
+
+// specs
+import '../common/modoSpecService.js'
+
+// powers
+import '../common/modoPowersService.js'
+
+// subagents
+import '../common/modoSubagentService.js'
+
+// hook event wiring (file changes → hooks)
+import './modoHookWiring.js'
+
+// status bar (autonomy mode, active spec)
+import './modoStatusBar.js'
+
+// Modo explorer pane (Specs, Hooks, Steering in primary sidebar)
+import './modoExplorerPane.js'
+
+// Modo spec actions (create spec, run tasks)
+import './modoSpecActions.js'
+
+// Modo task CodeLens (clickable Run Task buttons in tasks.md)
+import './modoTaskCodeLens.js'
+
+// Modo slash commands and chat extras
+import './modoSlashCommands.js'
+
 // ---------- common (unclear if these actually need to be imported, because they're already imported wherever they're used) ----------
 
 // llmMessage

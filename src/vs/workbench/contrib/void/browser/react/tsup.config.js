@@ -14,6 +14,8 @@ export default defineConfig({
 		'./src2/void-onboarding/index.tsx',
 		'./src2/quick-edit-tsx/index.tsx',
 		'./src2/diff/index.tsx',
+		'./src2/modo-spec-panel/index.tsx',
+		'./src2/modo-hooks-panel/index.tsx',
 	],
 	outDir: './out',
 	format: ['esm'],

@@ -5,7 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import { Disposable, DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
-import { isMacintosh, isNative, OS } from '../../../../base/common/platform.js';
+import { isMacintosh as _isMacintosh, isNative as _isNative, OS } from '../../../../base/common/platform.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../platform/workspace/common/workspace.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
@@ -15,18 +15,18 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { editorForeground, registerColor, transparent } from '../../../../platform/theme/common/colorRegistry.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { isRecentFolder, IWorkspacesService } from '../../../../platform/workspaces/common/workspaces.js';
+import { isRecentFolder as _isRecentFolder, IWorkspacesService } from '../../../../platform/workspaces/common/workspaces.js';
 import { IHostService } from '../../../services/host/browser/host.js';
-import { ILabelService, Verbosity } from '../../../../platform/label/common/label.js';
+import { ILabelService, Verbosity as _Verbosity } from '../../../../platform/label/common/label.js';
 import { ColorScheme } from '../../web.api.js';
-import { OpenFileFolderAction, OpenFolderAction } from '../../actions/workspaceActions.js';
-import { IWindowOpenable } from '../../../../platform/window/common/window.js';
-import { splitRecentLabel } from '../../../../base/common/labels.js';
+import { OpenFileFolderAction as _OpenFileFolderAction, OpenFolderAction as _OpenFolderAction } from '../../actions/workspaceActions.js';
+import { IWindowOpenable as _IWindowOpenable } from '../../../../platform/window/common/window.js';
+import { splitRecentLabel as _splitRecentLabel } from '../../../../base/common/labels.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 
-/* eslint-disable */ // Void
+/* eslint-disable */ // Modo
 import { VOID_CTRL_K_ACTION_ID, VOID_CTRL_L_ACTION_ID } from '../../../contrib/void/browser/actionIDs.js';
-import { VIEWLET_ID as REMOTE_EXPLORER_VIEWLET_ID } from '../../../contrib/remote/browser/remoteExplorer.js';
+import { VIEWLET_ID as _REMOTE_EXPLORER_VIEWLET_ID } from '../../../contrib/remote/browser/remoteExplorer.js';
 /* eslint-enable */
 
 // interface WatermarkEntry {
@@ -95,13 +95,16 @@ export class EditorGroupWatermark extends Disposable {
 		// @IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
 		@IThemeService private readonly themeService: IThemeService,
-		@IWorkspacesService private readonly workspacesService: IWorkspacesService,
+		@IWorkspacesService private readonly _workspacesService: IWorkspacesService,
 		@ICommandService private readonly commandService: ICommandService,
-		@IHostService private readonly hostService: IHostService,
-		@ILabelService private readonly labelService: ILabelService,
-		@IViewsService private readonly viewsService: IViewsService,
+		@IHostService private readonly _hostService: IHostService,
+		@ILabelService private readonly _labelService: ILabelService,
+		@IViewsService private readonly _viewsService: IViewsService,
 	) {
 		super();
+
+		// Suppress unused warnings for DI params we keep for future use
+		void this._workspacesService; void this._hostService; void this._labelService; void this._viewsService; void this.commandService;
 
 		const elements = h('.editor-group-watermark', [
 			h('.letterpress@icon'),
@@ -111,13 +114,14 @@ export class EditorGroupWatermark extends Disposable {
 		append(container, elements.root);
 		this.shortcuts = elements.shortcuts; // shortcuts div is modified on render()
 
-		// void icon style
+		// Modo icon style
 		const updateTheme = () => {
 			const theme = this.themeService.getColorTheme().type
 			const isDark = theme === ColorScheme.DARK || theme === ColorScheme.HIGH_CONTRAST_DARK
-			elements.icon.style.maxWidth = '220px'
-			elements.icon.style.opacity = '50%'
-			elements.icon.style.filter = isDark ? '' : 'invert(1)' //brightness(.5)
+			elements.icon.style.maxWidth = '260px'
+			elements.icon.style.opacity = '65%'
+			elements.icon.style.filter = isDark ? '' : 'invert(1)'
+			elements.icon.style.marginBottom = '6px'
 		}
 		updateTheme()
 		this._register(
@@ -170,10 +174,6 @@ export class EditorGroupWatermark extends Disposable {
 
 		const update = async () => {
 
-			// put async at top so don't need to wait (this prevents a jitter on load)
-			const recentlyOpened = await this.workspacesService.getRecentlyOpened()
-				.catch(() => ({ files: [], workspaces: [] })).then(w => w.workspaces);
-
 			clearNode(voidIconBox);
 			clearNode(recentsBox);
 
@@ -181,146 +181,28 @@ export class EditorGroupWatermark extends Disposable {
 			this.currentDisposables.clear();
 
 
-			// Void - if the workbench is empty, show open
-			if (this.contextService.getWorkbenchState() === WorkbenchState.EMPTY) {
+			// Show Kiro-style layout — same for all states
+			const shortcuts = [
+				{ label: 'Open chat', actionId: VOID_CTRL_L_ACTION_ID },
+				{ label: 'Inline chat', actionId: VOID_CTRL_K_ACTION_ID },
+				{ label: 'Show All Commands', actionId: 'workbench.action.showCommands' },
+				{ label: 'Go to File', actionId: 'workbench.action.quickOpen' },
+				{ label: 'Find in Files', actionId: 'workbench.action.findInFiles' },
+				{ label: 'Start Debugging', actionId: 'workbench.action.debug.start' },
+				{ label: 'Toggle Terminal', actionId: 'workbench.action.terminal.toggleTerminal' },
+				{ label: 'Toggle Full Screen', actionId: 'workbench.action.toggleFullScreen' },
+				{ label: 'Show Settings', actionId: 'workbench.action.openSettings' },
+			];
 
-				// Create a flex container for buttons with vertical direction
-				const buttonContainer = $('div');
-				buttonContainer.style.display = 'flex';
-				buttonContainer.style.flexDirection = 'column'; // Change to column for vertical stacking
-				buttonContainer.style.alignItems = 'center'; // Center the buttons horizontally
-				buttonContainer.style.gap = '8px'; // Reduce gap between buttons from 16px to 8px
-				buttonContainer.style.marginBottom = '16px';
-				voidIconBox.appendChild(buttonContainer);
-
-				// Open a folder
-				const openFolderButton = h('button')
-				openFolderButton.root.classList.add('void-openfolder-button')
-				openFolderButton.root.style.display = 'block'
-				openFolderButton.root.style.width = '124px' // Set width to 124px as requested
-				openFolderButton.root.textContent = 'Open Folder'
-				openFolderButton.root.onclick = () => {
-					this.commandService.executeCommand(isMacintosh && isNative ? OpenFileFolderAction.ID : OpenFolderAction.ID)
-					// if (this.contextKeyService.contextMatchesRules(ContextKeyExpr.and(WorkbenchStateContext.isEqualTo('workspace')))) {
-					// 	this.commandService.executeCommand(OpenFolderViaWorkspaceAction.ID);
-					// } else {
-					// 	this.commandService.executeCommand(isMacintosh ? 'workbench.action.files.openFileFolder' : 'workbench.action.files.openFolder');
-					// }
-				}
-				buttonContainer.appendChild(openFolderButton.root);
-
-				// Open SSH button
-				const openSSHButton = h('button')
-				openSSHButton.root.classList.add('void-openssh-button')
-				openSSHButton.root.style.display = 'block'
-				openSSHButton.root.style.backgroundColor = '#5a5a5a' // Made darker than the default gray
-				openSSHButton.root.style.width = '124px' // Set width to 124px as requested
-				openSSHButton.root.textContent = 'Open SSH'
-				openSSHButton.root.onclick = () => {
-					this.viewsService.openViewContainer(REMOTE_EXPLORER_VIEWLET_ID);
-				}
-				buttonContainer.appendChild(openSSHButton.root);
-
-
-				// Recents
-				if (recentlyOpened.length !== 0) {
-
-					voidIconBox.append(
-						...recentlyOpened.map((w, i) => {
-
-							let fullPath: string;
-							let windowOpenable: IWindowOpenable;
-							if (isRecentFolder(w)) {
-								windowOpenable = { folderUri: w.folderUri };
-								fullPath = w.label || this.labelService.getWorkspaceLabel(w.folderUri, { verbose: Verbosity.LONG });
-							}
-							else {
-								return null
-								// fullPath = w.label || this.labelService.getWorkspaceLabel(w.workspace, { verbose: Verbosity.LONG });
-								// windowOpenable = { workspaceUri: w.workspace.configPath };
-							}
-
-
-							const { name, parentPath } = splitRecentLabel(fullPath);
-
-							const linkSpan = $('span');
-							linkSpan.classList.add('void-link')
-							linkSpan.style.display = 'flex'
-							linkSpan.style.gap = '4px'
-							linkSpan.style.padding = '8px'
-
-							linkSpan.addEventListener('click', e => {
-								this.hostService.openWindow([windowOpenable], {
-									forceNewWindow: e.ctrlKey || e.metaKey,
-									remoteAuthority: w.remoteAuthority || null // local window if remoteAuthority is not set or can not be deducted from the openable
-								});
-								e.preventDefault();
-								e.stopPropagation();
-							});
-
-							const nameSpan = $('span');
-							nameSpan.innerText = name;
-							nameSpan.title = fullPath;
-							linkSpan.appendChild(nameSpan);
-
-							const dirSpan = $('span');
-							dirSpan.style.paddingLeft = '4px';
-							dirSpan.style.whiteSpace = 'nowrap';
-							dirSpan.style.overflow = 'hidden';
-							dirSpan.style.maxWidth = '300px';
-							dirSpan.innerText = parentPath;
-							dirSpan.title = fullPath;
-
-							linkSpan.appendChild(dirSpan);
-
-							return linkSpan
-						})
-							.filter(v => !!v)
-							.slice(0, 5) // take 5 most recent
-					)
-				}
-
-			}
-			else {
-
-				// show them Void keybindings
-				const keys = this.keybindingService.lookupKeybinding(VOID_CTRL_L_ACTION_ID);
+			for (const shortcut of shortcuts) {
+				const keys = this.keybindingService.lookupKeybinding(shortcut.actionId);
 				const dl = append(voidIconBox, $('dl'));
 				const dt = append(dl, $('dt'));
-				dt.textContent = 'Chat'
+				dt.textContent = shortcut.label;
 				const dd = append(dl, $('dd'));
 				const label = new KeybindingLabel(dd, OS, { renderUnboundKeybindings: true, ...defaultKeybindingLabelStyles });
-				if (keys)
-					label.set(keys);
+				if (keys) label.set(keys);
 				this.currentDisposables.add(label);
-
-
-				const keys2 = this.keybindingService.lookupKeybinding(VOID_CTRL_K_ACTION_ID);
-				const dl2 = append(voidIconBox, $('dl'));
-				const dt2 = append(dl2, $('dt'));
-				dt2.textContent = 'Quick Edit'
-				const dd2 = append(dl2, $('dd'));
-				const label2 = new KeybindingLabel(dd2, OS, { renderUnboundKeybindings: true, ...defaultKeybindingLabelStyles });
-				if (keys2)
-					label2.set(keys2);
-				this.currentDisposables.add(label2);
-
-				// const keys3 = this.keybindingService.lookupKeybinding('workbench.action.openGlobalKeybindings');
-				// const button3 = append(recentsBox, $('button'));
-				// button3.textContent = `Void Settings`
-				// button3.style.display = 'block'
-				// button3.style.marginLeft = 'auto'
-				// button3.style.marginRight = 'auto'
-				// button3.classList.add('void-settings-watermark-button')
-
-				// const label3 = new KeybindingLabel(button3, OS, { renderUnboundKeybindings: true, ...defaultKeybindingLabelStyles });
-				// if (keys3)
-				// 	label3.set(keys3);
-				// button3.onclick = () => {
-				// 	this.commandService.executeCommand(VOID_OPEN_SETTINGS_ACTION_ID)
-				// }
-				// this.currentDisposables.add(label3);
-
 			}
 
 		};

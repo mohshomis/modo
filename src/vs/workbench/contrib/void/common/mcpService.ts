@@ -313,7 +313,7 @@ class MCPService extends Disposable implements IMCPService {
 		return toolResultStr
 	}
 
-	// toggle MCP server and update isOn in void settings
+	// toggle MCP server and update isOn in modo settings
 	public async toggleServerIsOn(serverName: string, isOn: boolean): Promise<void> {
 		this._setMCPServerState(serverName, { status: 'loading', tools: [] })
 

@@ -1,4 +1,4 @@
-This is a fork of the VSCode repo called Void.
+This is a fork of the Void editor (itself a fork of VS Code), rebranded as Modo.
 
 Most code we care about lives in src/vs/workbench/contrib/void.
 

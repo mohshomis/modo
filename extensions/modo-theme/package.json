@@ -1,0 +1,18 @@
+{
+  "name": "modo-theme",
+  "displayName": "Modo Dark",
+  "description": "The default dark theme for Modo IDE",
+  "version": "1.0.0",
+  "publisher": "modo",
+  "engines": { "vscode": "*" },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Modo Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/modo-dark.json"
+      }
+    ]
+  }
+}

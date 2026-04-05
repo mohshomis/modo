@@ -38,6 +38,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IDirectoryStrService } from '../common/directoryStrService.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IMCPService } from '../common/mcpService.js';
+import { IModoHookService } from '../common/modoHookService.js';
 import { RawMCPToolCall } from '../common/mcpServiceTypes.js';
 
 
@@ -125,6 +126,8 @@ export type ThreadType = {
 
 		stagingSelections: StagingSelectionItem[];
 		focusedMessageIdx: number | undefined; // index of the user message that is being edited (undefined if none)
+
+		sessionMode: 'vibe' | 'spec'; // Modo session mode — vibe (free-form) or spec (structured workflow)
 
 		linksOfMessageIdx: { // eg. link = linksOfMessageIdx[4]['RangeFunction']
 			[messageIdx: number]: {
@@ -216,6 +219,7 @@ const newThreadObject = () => {
 			currCheckpointIdx: null,
 			stagingSelections: [],
 			focusedMessageIdx: undefined,
+			sessionMode: 'vibe' as const,
 			linksOfMessageIdx: {},
 		},
 		filesWithUserChanges: new Set()
@@ -327,6 +331,7 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 		@IDirectoryStrService private readonly _directoryStringService: IDirectoryStrService,
 		@IFileService private readonly _fileService: IFileService,
 		@IMCPService private readonly _mcpService: IMCPService,
+		@IModoHookService private readonly _hookService: IModoHookService,
 	) {
 		super()
 		this.state = { allThreads: {}, currentThreadId: null as unknown as string } // default state
@@ -443,11 +448,11 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 			// set streamState
 			const messages = newState.allThreads[threadId]?.messages
 			const lastMessage = messages && messages[messages.length - 1]
-			// if awaiting user but stream state doesn't indicate it (happens if restart Void)
+			// if awaiting user but stream state doesn't indicate it (happens if restart Modo)
 			if (lastMessage && lastMessage.role === 'tool' && lastMessage.type === 'tool_request')
 				this._setStreamState(threadId, { isRunning: 'awaiting_user', })
 
-			// if running now but stream state doesn't indicate it (happens if restart Void), cancel that last tool
+			// if running now but stream state doesn't indicate it (happens if restart Modo), cancel that last tool
 			if (lastMessage && lastMessage.role === 'tool' && lastMessage.type === 'running_now') {
 
 				this._updateLatestTool(threadId, { role: 'tool', type: 'rejected', content: lastMessage.content, id: lastMessage.id, rawParams: lastMessage.rawParams, result: null, name: lastMessage.name, params: lastMessage.params, mcpServerName: lastMessage.mcpServerName })
@@ -660,7 +665,27 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 
 
 
-		// 3. call the tool
+		// 3. call the tool — fire preToolUse hook first
+		const toolCategory = isBuiltInTool
+			? (['read_file', 'ls_dir', 'get_dir_tree', 'search_pathnames_only', 'search_for_files', 'search_in_file', 'read_lint_errors'].includes(toolName) ? 'read'
+				: ['create_file_or_folder', 'delete_file_or_folder', 'rewrite_file', 'edit_file'].includes(toolName) ? 'write'
+				: ['run_command', 'run_persistent_command', 'open_persistent_terminal', 'kill_persistent_terminal'].includes(toolName) ? 'shell'
+				: 'read')
+			: 'mcp'
+
+		// Fire preToolUse hooks
+		try {
+			const preResults = await this._hookService.fireEvent({
+				type: 'preToolUse',
+				toolName,
+				toolCategory,
+			})
+			if (preResults.some(r => r.denied)) {
+				this._updateLatestTool(threadId, { role: 'tool', type: 'tool_error', params: toolParams, result: '[Blocked by hook policy]', name: toolName, content: '[Blocked by hook policy]', id: toolId, rawParams: opts.unvalidatedToolParams, mcpServerName })
+				return {}
+			}
+		} catch { /* hooks not critical */ }
+
 		// this._setStreamState(threadId, { isRunning: 'tool' }, 'merge')
 		const runningTool = { role: 'tool', type: 'running_now', name: toolName, params: toolParams, content: '(value not received yet...)', result: null, id: toolId, rawParams: opts.unvalidatedToolParams, mcpServerName } as const
 		this._updateLatestTool(threadId, runningTool)
@@ -723,6 +748,16 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 
 		// 5. add to history and keep going
 		this._updateLatestTool(threadId, { role: 'tool', type: 'success', params: toolParams, result: toolResult, name: toolName, content: toolResultStr, id: toolId, rawParams: opts.unvalidatedToolParams, mcpServerName })
+
+		// Fire postToolUse hooks
+		try {
+			await this._hookService.fireEvent({
+				type: 'postToolUse',
+				toolName,
+				toolCategory,
+			})
+		} catch { /* hooks not critical */ }
+
 		return {}
 	};
 
@@ -777,10 +812,12 @@ class ChatThreadService extends Disposable implements IChatThreadService {
 			this._setStreamState(threadId, { isRunning: 'idle', interrupt: idleInterruptor })
 
 			const chatMessages = this.state.allThreads[threadId]?.messages ?? []
+			const sessionMode = this.state.allThreads[threadId]?.state.sessionMode
 			const { messages, separateSystemMessage } = await this._convertToLLMMessagesService.prepareLLMChatMessages({
 				chatMessages,
 				modelSelection,
-				chatMode
+				chatMode,
+				sessionMode,
 			})
 
 			if (interruptedWhenIdle) {
@@ -1219,8 +1256,16 @@ We only need to do it for files that were edited since `from`, ie files between 
 		}
 
 		p.then(() => {
+			// Fire agentStop hook
+			try {
+				this._hookService.fireEvent({ type: 'agentStop' });
+			} catch { /* hooks not critical */ }
 			if (threadId !== this.state.currentThreadId) notify({ error: null })
 		}).catch((e) => {
+			// Fire agentStop hook even on error
+			try {
+				this._hookService.fireEvent({ type: 'agentStop' });
+			} catch { /* hooks not critical */ }
 			if (threadId !== this.state.currentThreadId) notify({ error: getErrorMessage(e) })
 			throw e
 		})
@@ -1234,6 +1279,11 @@ We only need to do it for files that were edited since `from`, ie files between 
 	private async _addUserMessageAndStreamResponse({ userMessage, _chatSelections, threadId }: { userMessage: string, _chatSelections?: StagingSelectionItem[], threadId: string }) {
 		const thread = this.state.allThreads[threadId]
 		if (!thread) return // should never happen
+
+		// Fire promptSubmit hook
+		try {
+			await this._hookService.fireEvent({ type: 'promptSubmit', message: userMessage });
+		} catch { /* hooks not critical */ }
 
 		// interrupt existing stream
 		if (this.streamState[threadId]?.isRunning) {

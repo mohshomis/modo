@@ -101,7 +101,7 @@ export class MCPChannel implements IServerChannel {
 				return response
 			}
 			else {
-				throw new Error(`Void sendLLM: command "${command}" not recognized.`)
+				throw new Error(`Modo sendLLM: command "${command}" not recognized.`)
 			}
 		}
 		catch (e) {

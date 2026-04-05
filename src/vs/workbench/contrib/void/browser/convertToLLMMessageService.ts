@@ -18,6 +18,8 @@ import { URI } from '../../../../base/common/uri.js';
 import { EndOfLinePreference } from '../../../../editor/common/model.js';
 import { ToolName } from '../common/toolsServiceTypes.js';
 import { IMCPService } from '../common/mcpService.js';
+import { IModoSteeringService } from '../common/modoSteeringService.js';
+import { IModoSpecService } from '../common/modoSpecService.js';
 
 export const EMPTY_MESSAGE = '(empty message)'
 
@@ -271,7 +273,7 @@ const prepareOpenAIOrAnthropicMessages = ({
 	// A COMPLETE HACK: last message is system message for context purposes
 
 	const sysMsgParts: string[] = []
-	if (aiInstructions) sysMsgParts.push(`GUIDELINES (from the user's .voidrules file):\n${aiInstructions}`)
+	if (aiInstructions) sysMsgParts.push(`GUIDELINES (from the project's rules and steering files):\n${aiInstructions}`)
 	if (systemMessage) sysMsgParts.push(systemMessage)
 	const combinedSystemMessage = sysMsgParts.join('\n\n')
 
@@ -522,7 +524,7 @@ const prepareMessages = (params: {
 export interface IConvertToLLMMessageService {
 	readonly _serviceBrand: undefined;
 	prepareLLMSimpleMessages: (opts: { simpleMessages: SimpleLLMMessage[], systemMessage: string, modelSelection: ModelSelection | null, featureName: FeatureName }) => { messages: LLMChatMessage[], separateSystemMessage: string | undefined }
-	prepareLLMChatMessages: (opts: { chatMessages: ChatMessage[], chatMode: ChatMode, modelSelection: ModelSelection | null }) => Promise<{ messages: LLMChatMessage[], separateSystemMessage: string | undefined }>
+	prepareLLMChatMessages: (opts: { chatMessages: ChatMessage[], chatMode: ChatMode, modelSelection: ModelSelection | null, sessionMode?: 'vibe' | 'spec' }) => Promise<{ messages: LLMChatMessage[], separateSystemMessage: string | undefined }>
 	prepareFIMMessage(opts: { messages: LLMFIMMessage, }): { prefix: string, suffix: string, stopTokens: string[] }
 }
 
@@ -541,36 +543,83 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		@IVoidSettingsService private readonly voidSettingsService: IVoidSettingsService,
 		@IVoidModelService private readonly voidModelService: IVoidModelService,
 		@IMCPService private readonly mcpService: IMCPService,
+		@IModoSteeringService private readonly modoSteeringService: IModoSteeringService,
+		@IModoSpecService private readonly modoSpecService: IModoSpecService,
 	) {
 		super()
 	}
 
-	// Read .voidrules files from workspace folders
+	// Read .modorules and .voidrules files from workspace folders
 	private _getVoidRulesFileContents(): string {
 		try {
 			const workspaceFolders = this.workspaceContextService.getWorkspace().folders;
-			let voidRules = '';
+			let rules = '';
 			for (const folder of workspaceFolders) {
-				const uri = URI.joinPath(folder.uri, '.voidrules')
-				const { model } = this.voidModelService.getModel(uri)
-				if (!model) continue
-				voidRules += model.getValue(EndOfLinePreference.LF) + '\n\n';
+				// Try .modorules first, fall back to .voidrules
+				for (const filename of ['.modorules', '.voidrules']) {
+					const uri = URI.joinPath(folder.uri, filename)
+					const { model } = this.voidModelService.getModel(uri)
+					if (!model) continue
+					rules += model.getValue(EndOfLinePreference.LF) + '\n\n';
+				}
 			}
-			return voidRules.trim();
+			return rules.trim();
 		}
 		catch (e) {
 			return ''
 		}
 	}
 
-	// Get combined AI instructions from settings and .voidrules files
-	private _getCombinedAIInstructions(): string {
+	// Get combined AI instructions from settings, .voidrules files, Modo steering, and active spec
+	private _getCombinedAIInstructions(sessionMode?: 'vibe' | 'spec'): string {
 		const globalAIInstructions = this.voidSettingsService.state.globalSettings.aiInstructions;
 		const voidRulesFileContent = this._getVoidRulesFileContents();
+
+		// Modo steering context injection
+		const activeFilePath = this.editorService.activeEditor?.resource?.fsPath;
+		const steeringContent = this.modoSteeringService.buildContext({
+			activeFilePath,
+		});
+
+		// Active spec context injection
+		let specContext = '';
+		const activeSpecId = this.modoSpecService.activeSpecId;
+		if (activeSpecId) {
+			const fullContext = this.modoSpecService.getFullContext(activeSpecId);
+			if (fullContext) {
+				specContext = `<active_spec>\n${fullContext}\n</active_spec>`;
+			}
+		}
+
+		// Spec session mode instructions — injected into system prompt, invisible to user
+		let specModeInstructions = '';
+		if (sessionMode === 'spec') {
+			specModeInstructions = `<spec_workflow_mode>
+You are in Spec mode. Before writing any code, follow this structured workflow:
+
+1. First, ask clarifying questions about the feature/bug to understand scope, constraints, and priorities. Ask through natural conversation — do not dump a list of questions.
+
+2. Once you have enough context, create the spec files in .modo/specs/:
+   - requirements.md: User stories with acceptance criteria, non-functional requirements, constraints
+   - design.md: Architecture overview, component breakdown, data models, file changes needed
+   - tasks.md: Ordered checklist of discrete implementation tasks using - [ ] format
+
+   IMPORTANT: When creating new files, use the rewrite_file tool (not create_file + edit_file). This writes the full content in one step.
+
+3. After creating the spec files, summarize what was planned and ask if the user wants to proceed with implementation.
+
+4. Do NOT write implementation code until the spec is explicitly approved.
+
+Initialize .modo/specs/ directory if it doesn't exist.
+</spec_workflow_mode>`;
+		}
 
 		const ans: string[] = []
 		if (globalAIInstructions) ans.push(globalAIInstructions)
 		if (voidRulesFileContent) ans.push(voidRulesFileContent)
+		if (steeringContent) ans.push(steeringContent)
+		if (specContext) ans.push(specContext)
+		if (specModeInstructions) ans.push(specModeInstructions)
 		return ans.join('\n\n')
 	}
 
@@ -667,7 +716,7 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 		})
 		return { messages, separateSystemMessage };
 	}
-	prepareLLMChatMessages: IConvertToLLMMessageService['prepareLLMChatMessages'] = async ({ chatMessages, chatMode, modelSelection }) => {
+	prepareLLMChatMessages: IConvertToLLMMessageService['prepareLLMChatMessages'] = async ({ chatMessages, chatMode, modelSelection, sessionMode }) => {
 		if (modelSelection === null) return { messages: [], separateSystemMessage: undefined }
 
 		const { overridesOfModel } = this.voidSettingsService.state
@@ -685,8 +734,8 @@ class ConvertToLLMMessageService extends Disposable implements IConvertToLLMMess
 
 		const modelSelectionOptions = this.voidSettingsService.state.optionsOfModelSelection['Chat'][modelSelection.providerName]?.[modelSelection.modelName]
 
-		// Get combined AI instructions
-		const aiInstructions = this._getCombinedAIInstructions();
+		// Get combined AI instructions — pass sessionMode for spec workflow injection
+		const aiInstructions = this._getCombinedAIInstructions(sessionMode);
 		const isReasoningEnabled = getIsReasoningEnabledState('Chat', providerName, modelName, modelSelectionOptions, overridesOfModel)
 		const reservedOutputTokenSpace = getReservedOutputTokenSpace(providerName, modelName, { isReasoningEnabled, overridesOfModel })
 		const llmMessages = this._chatMessagesToSimpleMessages(chatMessages)
