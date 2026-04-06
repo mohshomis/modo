@@ -155,7 +155,7 @@ Modo adds everything in the [What Modo Adds](#what-modo-adds) section on top of 
 ## Quick Start
 
 ```bash
-git clone https://github.com/modoeditor/modo.git
+git clone https://github.com/mohshomis/modo.git
 cd modo
 npm install          # requires Node 20
 npm run buildreact   # compile React UI
