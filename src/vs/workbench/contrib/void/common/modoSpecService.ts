@@ -381,8 +381,8 @@ class ModoSpecService extends Disposable implements IModoSpecService {
 		};
 		this.specs.push(spec);
 		this._onDidChangeSpecs.fire();
-		// Fire async disk write but don't block
-		this.createSpec(prompt, spec.title, 'feature', 'requirements-first').catch(() => { });
+		// Fire async disk write but don't block - use a different title to avoid collision
+		this.createSpec(prompt, `${spec.title} (Disk)`, 'feature', 'requirements-first').catch(() => { });
 		return spec;
 	}
 
