@@ -65,13 +65,18 @@ function parseFrontMatter(raw: string): { data: Record<string, string>; content:
 
 // Simple glob match for fileMatchPattern
 function simpleGlobMatch(pattern: string, filePath: string): boolean {
-	// Convert glob to regex: ** = any path, * = any segment
-	const regexStr = pattern
-		.replace(/\./g, '\\.')
-		.replace(/\*\*/g, '{{GLOBSTAR}}')
-		.replace(/\*/g, '[^/]*')
-		.replace(/\{\{GLOBSTAR\}\}/g, '.*');
-	return new RegExp(`^${regexStr}$`).test(filePath);
+	try {
+		// Convert glob to regex: ** = any path, * = any segment
+		const regexStr = pattern
+			.replace(/\./g, '\\.')
+			.replace(/\*\*/g, '{{GLOBSTAR}}')
+			.replace(/\*/g, '[^/]*')
+			.replace(/\{\{GLOBSTAR\}\}/g, '.*');
+		return new RegExp(`^${regexStr}$`).test(filePath);
+	} catch {
+		// If pattern is invalid, fall back to simple string comparison
+		return filePath.includes(pattern.replace(/\*\*/g, '').replace(/\*/g, ''));
+	}
 }
 
 // --- Service Implementation ---
